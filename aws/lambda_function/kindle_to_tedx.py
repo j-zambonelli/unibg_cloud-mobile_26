@@ -1,9 +1,12 @@
+"""
+This lambda function acts as a bridge between the Kindle ecosystem and TEDx data. 
+It receives a list of Kindle book genres from the client and maps them to a broader set of relevant TEDx tags 
+using a predefined dictionery, effectively helping users break out of their content filter bubbles
+"""
 import json
 
 def lambda_handler(event, context):
-    """
-    Mappa i generi letterari Kindle nei tag TEDx corrispondenti.
-    """
+    # Maps Kindle literary genres to their corresponding TEDx search tags
     if isinstance(event.get('body'), str):
         body = json.loads(event['body'])
     else:
@@ -11,7 +14,7 @@ def lambda_handler(event, context):
         
     kindle_genres = body.get('kindle_genres', [])
     
-    # Il dizionario di mappatura per abbattere la Filter Bubble
+    # Mapping dictionary to cross-reference genres and expand content discovery
     mapping_bridge = {
         "Scienza e Tecnologia": ["science", "technology", "innovation", "future"],
         "Biografie": ["biography", "history", "personal growth", "identity"],

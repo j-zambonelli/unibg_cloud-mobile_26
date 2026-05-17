@@ -1,11 +1,15 @@
+"""
+This function handles the video recommendation query. 
+It receives the array of mapped TEDx tags from previous step, connects to the MongoDB Atlas cluster, 
+and searches for talks that match any of those tags. 
+To ensure fast response times for the mobile application, result are capped at a maximum of five videos
+"""
 import json
 import os
 from pymongo import MongoClient
 
 def lambda_handler(event, context):
-    """
-    Interroga la collezione aggregata 'tedx_data' usando i tag estratti.
-    """
+    # Queries the aggregated MongoDB collection using extracted tags to return matching talks.
     if isinstance(event.get('body'), str):
         body = json.loads(event['body'])
     else:
@@ -31,8 +35,9 @@ def lambda_handler(event, context):
     db = client['unibg_tedx_2026']
     talks_col = db['tedx_data']
     
-    # Cerchiamo i talk dove l'array 'tags' contiene almeno uno dei tag cercati
-    query = {"tags": {"$in": search_tags}}
+    # Finds talks where the 'tags' array contains at least one of the input search tags, excluding videos the user has already seen 
+    query = {"tags": {"$in": search_tags}, 
+             "_id": {"$nin": watched_video_ids}}
     results = talks_col.find(query).limit(5)
     
     recommended_talks = []
