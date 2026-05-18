@@ -17,14 +17,20 @@ TEDxplore funge da "ponte intelligente" tra il mondo della lettura e l'ispirazio
 ```Plaintext
 UNIBG_CLOUD-MOBILE_26/
 ├── aws/
-│   ├── lambda/         # Include gli script per il filtraggio dei generi Kindle e la logica di raccomandazione dei talk.
-│   └── glue/           # Contiene i processi ETL per la pulizia e il caricamento dei dati su MongoDB Atlas.
-├── data/               # Dataset estratti (CSV) e file di mapping 
-|   ├── mappings/       # File JSON/CSV per la corrispondenza dei generi Kindle con i Tag TEDx
-│   └── raw/            # Contiene i dataset originali TEDx relativi a dettagli, tag, immagini e video correlati.
-├── database_MongoDB/   # Script per la creazione di indici su MongoDB Atlas
-├── docs/               # Documentazione tecnica e architettura di sistema
-└── frontend/           # Codice sorgente dell'app Flutter
+│   ├── lambda/                 # Include gli script per il filtraggio dei generi Kindle e la logica di raccomandazione dei talk.
+│   └── glue/                   # Contiene i processi ETL per la pulizia e il caricamento dei dati su MongoDB Atlas.
+├── data/                       # Dataset estratti (CSV) e file di mapping 
+|   ├── mappings/               # File JSON/CSV per la corrispondenza dei generi Kindle con i Tag TEDx
+│   └── raw/                    # Contiene i dataset originali TEDx relativi a dettagli, tag, immagini e video correlati.
+├── database_MongoDB/           # Script per la creazione di indici su MongoDB Atlas
+├── docs                        # Documentazione tecnica e architettura di sistema
+├── tedxplore/                  # Frontend con codice sorgente dell'app Flutter
+|   └── lib/      
+│       ├── main
+│       └── screens/ 
+|           ├── home_screen      
+│           └── login_screen      
+└ README
 ```
 ### Architettura del Sistema
 Il sistema segue un flusso di dati moderno:
