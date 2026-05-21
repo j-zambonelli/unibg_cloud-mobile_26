@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'screens/login_screen.dart'; // Importa la schermata di login
+import 'screens/home_screen.dart';
 
 void main() {
   runApp(const MyApp());
@@ -11,17 +11,13 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'TEDexplore',
-      debugShowCheckedModeBanner: false, // Rimuove la striscia di debug in alto a destra
+      title: 'TEDxplore',
+      debugShowCheckedModeBanner: false, 
       theme: ThemeData(
-        brightness: Brightness.dark, // Imposta un tema scuro nativo globale
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: const Color(0xFFE74A32),
-          brightness: Brightness.dark,
-        ),
-        useMaterial3: true,
+        brightness: Brightness.dark,
+        scaffoldBackgroundColor: const Color(0xFF0F0F0F), 
       ),
-      home: const LoginScreen(), // La prima pagina visualizzata sarà il Login
+      home: const HomeScreen(), // La schermata iniziale sarà il nostro hub di navigazione
     );
   }
 }
