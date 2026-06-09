@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'home_screen.dart';
+import 'main_wrapper.dart'; // Importa il nuovo wrapper invece di home.dart
 
 class LoginScreen extends StatelessWidget {
   const LoginScreen({super.key});
@@ -14,13 +14,13 @@ class LoginScreen extends StatelessWidget {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              // Logo o Titolo
-              const Text(
-                'TEDexplore',
-                style: TextStyle(
-                  fontSize: 40,
-                  fontWeight: FontWeight.bold,
-                  color: Color(0xFFE74A32),
+              const Text.rich(
+                TextSpan(
+                  style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+                  children: [
+                    TextSpan(text: "TED", style: TextStyle(color: Color(0xFFEB0028))),
+                    TextSpan(text: "xplore", style: TextStyle(color: Colors.white)),
+                  ],
                 ),
               ),
               const SizedBox(height: 16),
@@ -31,7 +31,7 @@ class LoginScreen extends StatelessWidget {
               ),
               const SizedBox(height: 48),
               
-              // Bottone Login con Amazon (Simulato per ora)
+              // Bottone Login con Amazon
               ElevatedButton.icon(
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFFFF9900),
@@ -47,9 +47,9 @@ class LoginScreen extends StatelessWidget {
                   style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                 ),
                 onPressed: () {
-                  // Per ora simuliamo che il login vada a buon fine e passiamo alla Home
+                  // Sostituisce lo schermo corrente con il MainWrapper
                   Navigator.of(context).pushReplacement(
-                    MaterialPageRoute(builder: (context) => const HomeScreen()),
+                    MaterialPageRoute(builder: (context) => const MainWrapper()),
                   );
                 },
               ),
