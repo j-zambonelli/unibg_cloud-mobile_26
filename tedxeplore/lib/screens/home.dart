@@ -1,187 +1,232 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:tedxeplore/components/category_wheel.dart';
-import 'package:tedxeplore/components/video_card.dart';
-import 'package:tedxeplore/screens/proposals_list.dart';
+import 'package:tedxeplore/screens/proposal_list.dart';
+import '../components/genre_wheel.dart';
+import '../components/genre_chips.dart';
+import '../components/video_carousel.dart';
+import '../models/profile_model.dart';
+import '../models/video_model.dart';
+import '../services/aws_service.dart';
+import 'profile.dart';
 
 class HomeScreen extends StatefulWidget {
-  const HomeScreen({super.key});
+  final List<String> favoriteIds;
+  final Function(String) onToggleFavorite;
+  final UserProfileData userProfile;
+
+  const HomeScreen({
+    super.key,
+    required this.favoriteIds,
+    required this.onToggleFavorite,
+    required this.userProfile,
+  });
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  late String genereSelezionato;
+  final AwsService _awsService = AwsService();
+  String? _selectedGenreId;
+  String genereSelezionatoNome = '';
+  
+  List<Map<String, dynamic>> generiData = [];
+  List<TedVideo> _recommendedVideos = [];
+  List<TedVideo> _latestVideos = [];
+  
+  bool _isCarouselLoading = true;
+  bool _isLatestLoading = true;
 
-  final List<Map<String, dynamic>> generiData = [
-    {'nome': 'Scienza', 'tagDatabase': ['science', 'biology', 'nature', 'animals'],'percentuale': 0.02, 'colore': Colors.grey },
-    {'nome': 'Tecnologia e Ingegneria', 'tagDatabase': ['technology', 'innovation', 'future', 'engineering', 'computers'],'percentuale': 0.02, 'colore': Colors.grey },
-    {'nome': 'Medicina e Corpo umano', 'tagDatabase': ['health', 'medicine', 'brain', 'health care', 'human body'],'percentuale': 0.02, 'colore': Colors.grey },
-    {'nome': 'Core', 'tagDatabase': ['business', 'work', 'economics', 'history', 'education'],'percentuale': 0.02, 'colore': Colors.grey },
-    {'nome': 'Crescita professionale', 'tagDatabase': ['leadership', 'collaboration', 'marketing'],'percentuale': 0.02, 'colore': Colors.grey },
-    {'nome': 'Mente e Comportamento', 'tagDatabase': ['psychology', 'brain', 'identity'],'percentuale': 0.02, 'colore': Colors.grey },
-    {'nome': 'Sviluppo personale', 'tagDatabase': ['personal growth', 'creativity', 'storytelling'],'percentuale': 0.03, 'colore': Colors.grey },
-    {'nome': 'Società e cultura', 'tagDatabase': ['social change', 'culture', 'society', 'humanity', 'community'],'percentuale': 0.08, 'colore': Colors.grey },
-    {'nome': 'Politica e istruzione', 'tagDatabase': ['politics', 'government', 'activism', 'women'],'percentuale': 0.07, 'colore': Colors.grey },
-    {'nome': 'Ambiente e sostenibilità', 'tagDatabase': ['climate change', 'environment', 'sustainability', 'Countdown'],'percentuale': 0.15, 'colore': Colors.grey },
-    {'nome': 'Scenari globali', 'tagDatabase': ['global issue'],'percentuale': 0.08, 'colore': Colors.grey },
-    {'nome': 'Narrazione', 'tagDatabase': ['humanity', 'identity'],'percentuale': 0.14, 'colore': Colors.grey },
-    {'nome': 'Arti visive e performative', 'tagDatabase': ['design', 'art', 'entertainment', 'music', 'performance'],'percentuale': 0.31, 'colore': Colors.grey },
-    {'nome': 'Contenuti multimediali', 'tagDatabase': ['animation', 'media'],'percentuale': 0.01, 'colore': Colors.grey },
-  ];
-
-  Map<String,String> traduzione = {
+  final Map<String, List<String>> _databaseTagsMappatura = {
+    'Scienza': ['science', 'biology', 'nature', 'animals'],
+    'Tecnologia e Ingegneria': ['technology', 'innovation', 'future', 'engineering', 'computers'],
+    'Medicina e Corpo umano': ['health', 'medicine', 'brain', 'health care', 'human body'],
+    'Core': ['business', 'work', 'economics', 'history', 'education'],
+    'Crescita professionale': ['leadership', 'collaboration', 'marketing'],
+    'Mente e Comportamento': ['psychology', 'brain', 'identity'],
+    'Sviluppo personale': ['personal growth', 'creativity', 'storytelling'],
+    'Società e cultura': ['social change', 'culture', 'society', 'humanity', 'community'],
+    'Politica e istruzione': ['politics', 'government', 'activism', 'women'],
+    'Ambiente e sostenibilità': ['climate change', 'environment', 'sustainability', 'Countdown'],
+    'Scenari globali': ['global issue'],
+    'Narrazione': ['humanity', 'identity'],
+    'Arti visive e performative': ['design', 'art', 'entertainment', 'music', 'performance'],
+    'Contenuti multimediali': ['animation', 'media'],
   };
 
   @override
   void initState() {
     super.initState();
-    generiData.sort((a, b) => b['percentuale'].compareTo(a['percentuale']));
-    genereSelezionato = generiData.first['nome'];
+    _inizializzaGeneriElettivi();
+    _loadLatestFormatVideos();
+  }
+
+  void _inizializzaGeneriElettivi() {
+    int idCounter = 1;
+    List<Map<String, dynamic>> temporanea = [];
+
+    widget.userProfile.percentualiGeneri.forEach((nomeGenere, percentuale) {
+      if (_databaseTagsMappatura.containsKey(nomeGenere)) {
+        temporanea.add({
+          'id': idCounter.toString(),
+          'nome': nomeGenere,
+          'tagDatabase': _databaseTagsMappatura[nomeGenere],
+          'percentuale': percentuale,
+        });
+        idCounter++;
+      }
+    });
+
+    temporanea.sort((a, b) => (b['percentuale'] as num).compareTo(a['percentuale'] as num));
+
+    if (temporanea.isNotEmpty) {
+      generiData = temporanea;
+      _selectedGenreId = generiData.first['id'];
+      genereSelezionatoNome = generiData.first['nome'];
+      _loadVideosForSelectedGenre(generiData.first['tagDatabase']);
+    }
+  }
+
+  Future<void> _loadVideosForSelectedGenre(List<String> tags) async {
+    setState(() => _isCarouselLoading = true);
+    final videos = await _awsService.fetchRecommendedVideos(tags);
+    setState(() {
+      _recommendedVideos = videos;
+      _isCarouselLoading = false;
+    });
+  }
+
+  Future<void> _loadLatestFormatVideos() async {
+    setState(() => _isLatestLoading = true);
+    final videos = await _awsService.fetchLatestVideos();
+    setState(() {
+      _latestVideos = videos.take(10).toList();
+      _isLatestLoading = false;
+    });
   }
 
   @override
   Widget build(BuildContext context) {
+    final listForComponents = generiData.map((g) => {
+      'id': g['id'],
+      'name': g['nome'],
+      'percentage': ((g['percentuale'] as double) * 100).toInt(),
+    }).toList();
+
     return Scaffold(
-      backgroundColor: const Color(0xFF111111),
-      appBar: AppBar(
-        backgroundColor: Colors.black,
-        elevation: 0,
-        title: RichText(
-          text: const TextSpan(
-            style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+      backgroundColor: Colors.black,
+      body: SafeArea(
+        bottom: false,
+        child: SingleChildScrollView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              TextSpan(text: "TED", style: TextStyle(color: Color(0xFFEB0028))),
-              TextSpan(text: "xplore", style: TextStyle(color: Colors.white)),
-            ],
-          ),
-        ),
-      ),
-      body: SingleChildScrollView(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const SizedBox(height: 16),
-
-            CategoryWheel(
-              generiData: generiData,
-              genereSelezionato: genereSelezionato,
-              onCategorySelected: (nuovoGenere) {
-                setState(() {
-                  genereSelezionato = nuovoGenere;
-                });
-              },
-            ),
-
-            const SizedBox(height: 30),
-            const Divider(color: Color(0xFF222222)),
-            const SizedBox(height: 16),
-
-            _buildSectionHeader(
-              title: 'Per te',
-              subtitle: 'Ispirati ai tuoi libri di $genereSelezionato',
-              showSeeMore: true,
-              onSeeMorePressed: () {
-                Navigator.of(context).push(
-                  MaterialPageRoute(
-                    builder: (context) => ProposalsScreen(genereIniziale: genereSelezionato),
-                  ),
-                );
-              },
-            ),
-            const SizedBox(height: 12),
-            SizedBox(
-              height: 205, // Altezza per riga singola pulita
-              child: ListView.builder(
-                scrollDirection: Axis.horizontal,
-                itemCount: 6,
-                padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                itemBuilder: (context, index) {
-                  return Padding(
-                    padding: const EdgeInsets.only(right: 14.0),
-                    child: TedxVideoCard(
-                      title: 'Talk consigliato su $genereSelezionato #${index + 1}',
-                      speaker: 'Speaker TEDx',
-                      imageUrl: 'https://picsum.photos/seed/home_perte_${genereSelezionato}_$index/300/200',
-                      duration: '14:20',
-                      onTap: () => print('Cliccato per te $index'),
+              // Intestazione Apple nativa che scorre via con la pagina
+              Padding(
+                padding: const EdgeInsets.only(left: 16.0, right: 16.0, top: 20.0, bottom: 10.0),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    RichText(
+                      text: const TextSpan(
+                        style: TextStyle(fontSize: 32, fontWeight: FontWeight.bold, letterSpacing: -1.0),
+                        children: [
+                          TextSpan(text: "TED", style: TextStyle(color: Color(0xFFFF3B30))),
+                          TextSpan(text: "xplore", style: TextStyle(color: Colors.white)),
+                        ],
+                      ),
                     ),
-                  );
-                },
-              ),
-            ),
-
-            const SizedBox(height: 32),
-
-            // 3. RIGA DI "NOVITÀ" SCORREVOLE (Fissa a 10 elementi, senza espansione)
-            _buildSectionHeader(
-              title: 'Novità della settimana',
-              subtitle: 'Gli ultimi talk pubblicati da non perdere',
-              showSeeMore: false,
-            ),
-            const SizedBox(height: 12),
-            SizedBox(
-              height: 205,
-              child: ListView.builder(
-                scrollDirection: Axis.horizontal,
-                itemCount: 10, // Massimo 10 fissi
-                padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                itemBuilder: (context, index) {
-                  return Padding(
-                    padding: const EdgeInsets.only(right: 14.0),
-                    child: TedxVideoCard(
-                      title: 'Nuovissimo Talk di questa settimana #${index + 1}',
-                      speaker: 'Nuovo Speaker',
-                      imageUrl: 'https://picsum.photos/seed/home_novita_$index/300/200',
-                      duration: '12:40',
-                      onTap: () => print('Cliccato novità $index'),
+                    GestureDetector(
+                      onTap: () {
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (context) => ProfileScreen(userProfile: widget.userProfile),
+                          ),
+                        );
+                      },
+                      child: Container(
+                        width: 36,
+                        height: 36,
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF2C2C2E),
+                          shape: BoxShape.circle,
+                          border: Border.all(color: Colors.white.withOpacity(0.1), width: 0.5),
+                        ),
+                        child: const Icon(
+                          CupertinoIcons.person_crop_circle,
+                          color: Colors.white,
+                          size: 24,
+                        ),
+                      ),
                     ),
-                  );
-                },
-              ),
-            ),
-            
-            const SizedBox(height: 32),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildSectionHeader({
-    required String title,
-    required String subtitle,
-    required bool showSeeMore,
-    VoidCallback? onSeeMorePressed,
-  }) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16.0),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                title,
-                style: const TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.bold),
-              ),
-              if (showSeeMore)
-                IconButton(
-                  icon: const Icon(Icons.arrow_forward_ios, color: Colors.grey, size: 18),
-                  onPressed: onSeeMorePressed,
+                  ],
                 ),
+              ),
+              
+              const SizedBox(height: 14),
+              Center(child: GenreWheel(genres: listForComponents, selectedGenreId: _selectedGenreId)),
+              const SizedBox(height: 24),
+              
+              Padding(
+                padding: const EdgeInsets.only(left: 16.0),
+                child: GenreChips(
+                  genres: listForComponents,
+                  selectedGenreId: _selectedGenreId,
+                  onSelectGenre: (id) {
+                    final target = generiData.firstWhere((g) => g['id'] == id);
+                    setState(() {
+                      _selectedGenreId = id;
+                      genereSelezionatoNome = target['nome'];
+                    });
+                    _loadVideosForSelectedGenre(List<String>.from(target['tagDatabase']));
+                  },
+                ),
+              ),
+              const SizedBox(height: 32),
+              
+              _isCarouselLoading
+                  ? const Padding(
+                      padding: EdgeInsets.symmetric(vertical: 40.0),
+                      child: Center(child: CircularProgressIndicator(color: Color(0xFFFF3B30))),
+                    )
+                  : VideoCarousel(
+                      title: "Suggeriti per te",
+                      videos: _recommendedVideos,
+                      showExpandButton: true,
+                      favoriteIds: widget.favoriteIds,
+                      onToggleFavorite: widget.onToggleFavorite,
+                      onExpandPressed: () => Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (c) => ProposalsScreen(
+                            favoriteIds: widget.favoriteIds,
+                            onToggleFavorite: widget.onToggleFavorite,
+                            userProfile: widget.userProfile,
+                          ),
+                        ),
+                      ),
+                      onVideoTap: (v) {},
+                    ),
+              
+              const SizedBox(height: 24),
+              
+              _isLatestLoading
+                  ? const Padding(
+                      padding: EdgeInsets.symmetric(vertical: 40.0),
+                      child: Center(child: CircularProgressIndicator(color: Color(0xFFFF3B30))),
+                    )
+                  : VideoCarousel(
+                      title: "Novità della settimana",
+                      videos: _latestVideos,
+                      favoriteIds: widget.favoriteIds,
+                      onToggleFavorite: widget.onToggleFavorite,
+                      onVideoTap: (v) {},
+                    ),
+              const SizedBox(height: 110),
             ],
           ),
         ),
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 2.0),
-          child: Text(
-            subtitle,
-            style: const TextStyle(color: Colors.grey, fontSize: 13),
-          ),
-        ),
-      ],
+      ),
     );
   }
 }
