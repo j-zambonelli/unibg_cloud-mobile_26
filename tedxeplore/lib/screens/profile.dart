@@ -14,17 +14,15 @@ class ProfileScreen extends StatefulWidget {
 }
 
 class _ProfileScreenState extends State<ProfileScreen> {
-  // Stato per il bottone attivo/disattivato delle notifiche
   bool _notificationsEnabled = true;
 
-  // Dati simulati per le statistiche richieste
   final int _videoVistiCount = 24;
   final int _likeCount = 12;
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF151517), // Sfondo grigio scurissimo tipico dei fogli modali iOS
+      backgroundColor: const Color(0xFF151517), 
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.symmetric(horizontal: 16.0),
@@ -33,7 +31,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
             children: [
               const SizedBox(height: 16),
               
-              // HEADER CON TITOLO AL CENTRO E BOTTONE DI CHIUSURA "X" A DESTRA
               Stack(
                 alignment: Alignment.center,
                 children: [
@@ -45,7 +42,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         color: Colors.white,
                         fontSize: 22,
                         fontWeight: FontWeight.bold,
-                        fontFamily: 'Serif', // Richiamo al font graziato di image_5.png
+                        fontFamily: 'Serif', 
                       ),
                     ),
                   ),
@@ -72,11 +69,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
               
               const SizedBox(height: 28),
 
-              // BLOCCO 1: AVATAR, NOME E EMAIL DELL'UTENTE
               Container(
                 padding: const EdgeInsets.all(16.0),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF242426), // Colore dei blocchi interni di image_5.png
+                  color: const Color(0xFF242426), 
                   borderRadius: BorderRadius.circular(16),
                 ),
                 child: Row(
@@ -127,7 +123,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
               const SizedBox(height: 28),
               
-              // BLOCCO 2: LE STATISTICHE DEI VIDEO (I MIEI ATTIVITÀ)
               const Padding(
                 padding: EdgeInsets.only(left: 8.0, bottom: 8.0),
                 child: Text(
@@ -181,7 +176,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
               const SizedBox(height: 24),
 
-              // BLOCCO 3: GESTIONE NOTIFICHE CON INTERRUTTORE (SWITCH)
               Container(
                 decoration: BoxDecoration(
                   color: const Color(0xFF242426),
@@ -204,7 +198,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
               const SizedBox(height: 32),
 
-              // BLOCCO 4: BOTTONE ESCI / LOGOUT INTEGRATO NEL DESIGN
               GestureDetector(
                 onTap: () async {
                   final SharedPreferences prefs = await SharedPreferences.getInstance();
@@ -228,7 +221,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     child: Text(
                       'Esci',
                       style: TextStyle(
-                        color: Color(0xFFFF3B30), // Rosso distruttivo Apple
+                        color: Color(0xFFFF3B30),
                         fontSize: 17,
                         fontWeight: FontWeight.w600,
                       ),

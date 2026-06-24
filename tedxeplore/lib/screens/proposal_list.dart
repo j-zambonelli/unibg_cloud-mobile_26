@@ -5,8 +5,7 @@ import '../models/profile_model.dart';
 class ProposalsScreen extends StatelessWidget {
   final List<String> favoriteIds;
   final Function(String) onToggleFavorite;
-  final UserProfileData userProfile; // Riceve correttamente l'intero profilo
-
+  final UserProfileData userProfile; 
   const ProposalsScreen({
     super.key, 
     required this.favoriteIds,
@@ -16,7 +15,6 @@ class ProposalsScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // CORRETTO: rimosso "widget." perché siamo in uno StatelessWidget
     final List<String> tuttiIGeneri = userProfile.percentualiGeneri.keys.toList();
 
     return Scaffold(
@@ -33,7 +31,7 @@ class ProposalsScreen extends StatelessWidget {
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: GridView.builder(
-          itemCount: 15, // Mostra il mix completo dei 5 generi
+          itemCount: 15,
           gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
             crossAxisCount: 2,
             crossAxisSpacing: 14,
@@ -41,7 +39,6 @@ class ProposalsScreen extends StatelessWidget {
             childAspectRatio: 0.76, 
           ),
           itemBuilder: (context, index) {
-            // Distribuisce ciclicamente i video tra tutti i generi attivi dell'account
             final genereCorrente = tuttiIGeneri.isNotEmpty 
                 ? tuttiIGeneri[index % tuttiIGeneri.length] 
                 : "Consigliati";

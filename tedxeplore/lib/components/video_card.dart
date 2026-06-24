@@ -25,12 +25,27 @@ class TedxVideoCard extends StatelessWidget {
     required this.onToggleFavorite,
   });
 
+  Widget _buildPlaceholder() {
+    return Container(
+      width: double.infinity,
+      height: double.infinity,
+      color: const Color(0xFF1C1C1E), 
+      child: const Center(
+        child: Icon(
+          CupertinoIcons.eye_slash, 
+          color: Color(0xFF48484A),    
+          size: 28,
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: onTap,
       child: SizedBox(
-        width: 240, // Leggermente più compatta per lo stile griglia iOS
+        width: 240, 
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -39,16 +54,20 @@ class TedxVideoCard extends StatelessWidget {
               child: Stack(
                 children: [
                   ClipRRect(
-                    borderRadius: BorderRadius.circular(12), // Raggio curvatura iOS ottimale per elementi medi
-                    child: Image.network(
-                      imageUrl,
-                      width: double.infinity,
-                      height: double.infinity,
-                      fit: BoxFit.cover,
-                      errorBuilder: (c, e, s) => Container(color: const Color(0xFF1C1C1E)),
-                    ),
+                    borderRadius: BorderRadius.circular(12), 
+                    // Controllo dinamico sulla presenza dell'immagine
+                    child: imageUrl.isNotEmpty
+                        ? Image.network(
+                            imageUrl,
+                            width: double.infinity,
+                            height: double.infinity,
+                            fit: BoxFit.cover,
+                            // Gestisce i link non funzionanti (es. errori 404)
+                            errorBuilder: (c, e, s) => _buildPlaceholder(),
+                          )
+                        : _buildPlaceholder(),
                   ),
-                  // Bottone Preferito iOS (Icona Cuore trasparente su cerchio sfocato)
+                  // Bottone Preferito iOS
                   Positioned(
                     top: 8,
                     right: 8,
@@ -76,7 +95,7 @@ class TedxVideoCard extends StatelessWidget {
                       padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
                       decoration: BoxDecoration(
                         color: Colors.black.withOpacity(0.7),
-                        borderRadius: BorderRadius.circular(6), // Angoli arrotondati piccoli
+                        borderRadius: BorderRadius.circular(6),
                       ),
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
@@ -95,7 +114,6 @@ class TedxVideoCard extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 6),
-            // Tipografia iOS: Titoli compatti ed eleganti
             Text(
               title,
               maxLines: 2,
@@ -103,8 +121,8 @@ class TedxVideoCard extends StatelessWidget {
               style: const TextStyle(
                 color: Colors.white, 
                 fontSize: 14, 
-                fontWeight: FontWeight.w600, // Semi-bold iOS style
-                letterSpacing: -0.2, // Lettere più vicine come in SF Pro Text
+                fontWeight: FontWeight.w600, 
+                letterSpacing: -0.2, 
               ),
             ),
             const SizedBox(height: 2),

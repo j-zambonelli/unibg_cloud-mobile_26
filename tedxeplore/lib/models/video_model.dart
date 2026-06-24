@@ -22,7 +22,7 @@ class TedVideo {
       id: json['id']?.toString() ?? json['_id']?.toString() ?? '',
       title: json['title'] ?? 'TEDx Talk',
       speaker: json['speaker'] ?? 'TEDx Speaker',
-      thumbnail: json['thumbnail'] ?? 'https://picsum.photos/seed/tedx/300/200',
+      thumbnail: json['thumbnail']?.toString() ?? '',
       duration: json['duration'] ?? '10:00',
       views: json['views'] ?? '100K',
       year: json['year'] is int ? json['year'] : int.tryParse(json['year']?.toString() ?? '2026') ?? 2026,

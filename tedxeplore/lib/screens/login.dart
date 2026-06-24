@@ -19,17 +19,13 @@ class _LoginScreenState extends State<LoginScreen> {
     setState(() => _isLoggingIn = true);
 
     try {
-      // 1. Simulazione del token OAuth restituito dall'autenticazione Amazon
       String accountAmazonToken = "amzn1.oa2-cs.v1.tedxplore_token_unibg";
 
-      // 2. Salviamo il token in modo persistente sul dispositivo
       final SharedPreferences prefs = await SharedPreferences.getInstance();
       await prefs.setString('amazon_user_token', accountAmazonToken);
 
-      // 3. Scarichiamo immediatamente i dati del profilo utente per il MainWrapper
       UserProfileData profile = await _awsService.fetchUserProfile(accountAmazonToken);
 
-      // 4. Spostiamo l'utente sulla Home passando l'oggetto profilo completo
       if (context.mounted) {
         Navigator.of(context).pushReplacement(
           MaterialPageRoute(

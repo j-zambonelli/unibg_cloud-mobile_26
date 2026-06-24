@@ -107,10 +107,12 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final listForComponents = generiData.map((g) => {
-      'id': g['id'],
-      'name': g['nome'],
-      'percentage': ((g['percentuale'] as double) * 100).toInt(),
+    final List<Map<String, dynamic>> listForComponents = generiData.map((g) {
+      return <String, dynamic>{
+        'id': g['id'],
+        'name': g['nome'],
+        'percentage': ((g['percentuale'] as double) * 100).toInt(),
+      };
     }).toList();
 
     return Scaffold(
@@ -121,7 +123,6 @@ class _HomeScreenState extends State<HomeScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Intestazione Apple nativa che scorre via con la pagina
               Padding(
                 padding: const EdgeInsets.only(left: 16.0, right: 16.0, top: 20.0, bottom: 10.0),
                 child: Row(

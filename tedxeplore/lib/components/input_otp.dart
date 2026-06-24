@@ -88,7 +88,7 @@ class _TedxInputOTPState extends State<TedxInputOTP> {
                       color: const Color(0xFF1F2937),
                       borderRadius: BorderRadius.circular(6),
                       border: Border.all(
-                        color: isFocused ? const Color(0xFFEF4444) : Colors.grey[800]!, 
+                        color: isFocused ? const Color(0xFFFF3B30) : Colors.grey[800]!, 
                         width: isFocused ? 2 : 1,
                       ),
                     ),
@@ -98,7 +98,7 @@ class _TedxInputOTPState extends State<TedxInputOTP> {
                       children: [
                         Text(char, style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
                         if (isFocused && _isCaretVisible) 
-                          Container(width: 2, height: 18, color: const Color(0xFFEF4444)),
+                          Container(width: 2, height: 18, color: const Color(0xFFFF3B30)),
                       ],
                     ),
                   ),

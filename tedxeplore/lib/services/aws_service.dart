@@ -4,8 +4,7 @@ import '../models/video_model.dart';
 import '../models/profile_model.dart';
 
 class AwsService {
-  // Sostituisci con l'URL reale di produzione del tuo API Gateway di AWS
-  static const String _baseUrl = 'https://api.unibg-tedxplore.aws.amazon.com/prod';
+  static const String _baseUrl = 'https://vx1psjknmb.execute-api.us-east-1.amazonaws.com/prod';
 
   Future<UserProfileData> fetchUserProfile(String token) async {
     final url = Uri.parse('$_baseUrl/user/profile');
@@ -20,8 +19,7 @@ class AwsService {
       if (response.statusCode == 200) {
         return UserProfileData.fromJson(jsonDecode(response.body));
       }
-    } catch (_) {
-    }
+    } catch (_) {}
 
     return UserProfileData(
       username: "JuliaZ04",
@@ -91,24 +89,6 @@ class AwsService {
         thumbnail: "https://picsum.photos/seed/solar/300/200", 
         duration: "11:40", 
         views: "15K", 
-        year: 2026,
-      ),
-      TedVideo(
-        id: "new_2", 
-        title: "Riprogettare le città con la biomimetica", 
-        speaker: "Elena Rossi", 
-        thumbnail: "https://picsum.photos/seed/city/300/200", 
-        duration: "16:10", 
-        views: "82K", 
-        year: 2026,
-      ),
-      TedVideo(
-        id: "new_3", 
-        title: "Algoritmi predittivi e gestione dei cluster cloud", 
-        speaker: "UniBG Devs", 
-        thumbnail: "https://picsum.photos/seed/data/300/200", 
-        duration: "12:15", 
-        views: "9K", 
         year: 2026,
       ),
     ];

@@ -16,7 +16,7 @@ class TedxSwitch extends StatelessWidget {
         height: 20,
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(10),
-          color: value ? const Color(0xFFEF4444) : const Color(0xFF374151),
+          color: value ? const Color(0xFFFF3B30) : const Color(0xFF374151),
         ),
         padding: const EdgeInsets.all(2),
         child: AnimatedAlign(

@@ -3,7 +3,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'screens/home.dart';
 import 'screens/favorites.dart';
-import 'screens/settings.dart'; // Importiamo la nuova pagina impostazioni
+import 'screens/settings.dart'; 
 import 'models/profile_model.dart';
 import 'models/video_model.dart';
 import 'services/aws_service.dart';
@@ -68,7 +68,7 @@ class _MainWrapperState extends State<MainWrapper> {
         onToggleFavorite: _toggleFavorite,
         allVideos: _allLoadedVideos,
       ),
-      SettingsScreen(userProfile: widget.userProfile), // Terzo tab: Impostazioni
+      SettingsScreen(userProfile: widget.userProfile), 
     ];
 
     return Scaffold(
@@ -80,7 +80,6 @@ class _MainWrapperState extends State<MainWrapper> {
             children: screens,
           ),
           
-          // BARRA INFERIORE GALLEGGIANTE (STILE APPLE BOOKS)
           Positioned(
             bottom: 24,
             left: 20,
@@ -108,7 +107,7 @@ class _MainWrapperState extends State<MainWrapper> {
                           children: [
                             _buildNavItem(0, CupertinoIcons.house, CupertinoIcons.house_fill),
                             _buildNavItem(1, CupertinoIcons.heart, CupertinoIcons.heart_fill),
-                            _buildNavItem(2, CupertinoIcons.gear, CupertinoIcons.gear_solid), // Ingranaggio Impostazioni
+                            _buildNavItem(2, CupertinoIcons.gear, CupertinoIcons.gear_solid), 
                           ],
                         ),
                       ),

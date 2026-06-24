@@ -6,7 +6,7 @@ import '../models/video_model.dart';
 class FavoritesScreen extends StatelessWidget {
   final List<String> favoriteIds;
   final Function(String) onToggleFavorite;
-  final List<TedVideo> allVideos; // Passiamo la lista complessiva dei video caricati nell'app
+  final List<TedVideo> allVideos; 
 
   const FavoritesScreen({
     super.key, 
@@ -17,7 +17,6 @@ class FavoritesScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Estrae i video reali corrispondenti agli ID salvati nei preferiti dell'account
     final List<TedVideo> realFavoriteVideos = allVideos
         .where((video) => favoriteIds.contains(video.id))
         .toList();
@@ -58,7 +57,7 @@ class FavoritesScreen extends StatelessWidget {
                 crossAxisCount: 2, 
                 crossAxisSpacing: 14, 
                 mainAxisSpacing: 16, 
-                childAspectRatio: 0.75, // Spazio calibrato in linea con le proporzioni Apple Books
+                childAspectRatio: 0.75, 
               ),
               itemBuilder: (context, index) {
                 final video = realFavoriteVideos[index];
@@ -69,7 +68,7 @@ class FavoritesScreen extends StatelessWidget {
                   duration: video.duration,
                   views: video.views,
                   year: video.year.toString(),
-                  isFavorite: true, // È tassativamente un preferito in questa schermata
+                  isFavorite: true, 
                   onTap: () {},
                   onToggleFavorite: () => onToggleFavorite(video.id),
                 );
