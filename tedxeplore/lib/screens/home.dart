@@ -48,7 +48,7 @@ class _HomeScreenState extends State<HomeScreen> {
     'Società e cultura': ['social change', 'culture', 'society', 'humanity', 'community'],
     'Politica e istruzione': ['politics', 'government', 'activism', 'women'],
     'Ambiente e sostenibilità': ['climate change', 'environment', 'sustainability', 'Countdown'],
-    'Scenari globali': ['global issue'],
+    'Scenari globali': ['global issues'], 
     'Narrazione': ['humanity', 'identity'],
     'Arti visive e performative': ['design', 'art', 'entertainment', 'music', 'performance'],
     'Contenuti multimediali': ['animation', 'media'],
@@ -84,25 +84,42 @@ class _HomeScreenState extends State<HomeScreen> {
       _selectedGenreId = generiData.first['id'];
       genereSelezionatoNome = generiData.first['nome'];
       _loadVideosForSelectedGenre(generiData.first['tagDatabase']);
+    } else {
+      // Se l'utente non ha generi, carichiamo un set di video misti/generici per non bloccare la UI
+      _loadVideosForSelectedGenre([]);
     }
   }
 
   Future<void> _loadVideosForSelectedGenre(List<String> tags) async {
     setState(() => _isCarouselLoading = true);
-    final videos = await _awsService.fetchRecommendedVideos(tags);
-    setState(() {
-      _recommendedVideos = videos;
-      _isCarouselLoading = false;
-    });
+    try {
+      final videos = await _awsService.fetchRecommendedVideos(tags);
+      setState(() {
+        _recommendedVideos = videos;
+        _isCarouselLoading = false;
+      });
+    } catch (_) {
+      setState(() {
+        _recommendedVideos = [];
+        _isCarouselLoading = false;
+      });
+    }
   }
 
   Future<void> _loadLatestFormatVideos() async {
     setState(() => _isLatestLoading = true);
-    final videos = await _awsService.fetchLatestVideos();
-    setState(() {
-      _latestVideos = videos.take(10).toList();
-      _isLatestLoading = false;
-    });
+    try {
+      final videos = await _awsService.fetchLatestVideos();
+      setState(() {
+        _latestVideos = videos.take(10).toList();
+        _isLatestLoading = false;
+      });
+    } catch (_) {
+      setState(() {
+        _latestVideos = [];
+        _isLatestLoading = false;
+      });
+    }
   }
 
   @override
@@ -123,6 +140,7 @@ class _HomeScreenState extends State<HomeScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              // Header con Logo e Profilo
               Padding(
                 padding: const EdgeInsets.only(left: 16.0, right: 16.0, top: 20.0, bottom: 10.0),
                 child: Row(
@@ -167,32 +185,51 @@ class _HomeScreenState extends State<HomeScreen> {
               
               const SizedBox(height: 14),
               Center(child: GenreWheel(genres: listForComponents, selectedGenreId: _selectedGenreId)),
-              const SizedBox(height: 24),
               
-              Padding(
-                padding: const EdgeInsets.only(left: 16.0),
-                child: GenreChips(
-                  genres: listForComponents,
-                  selectedGenreId: _selectedGenreId,
-                  onSelectGenre: (id) {
-                    final target = generiData.firstWhere((g) => g['id'] == id);
-                    setState(() {
-                      _selectedGenreId = id;
-                      genereSelezionatoNome = target['nome'];
-                    });
-                    _loadVideosForSelectedGenre(List<String>.from(target['tagDatabase']));
-                  },
+              // LOGICA DI COLD START: Se non ci sono dati, mostra il testo elegante alla base della ruota
+              if (listForComponents.isEmpty) ...[
+                const SizedBox(height: 10),
+                const Center(
+                  child: Text(
+                    "Nessun genere Kindle rilevato",
+                    style: TextStyle(
+                      color: Color(0xFF8E8E93), 
+                      fontSize: 14,
+                      fontWeight: FontWeight.w400,
+                      letterSpacing: -0.1,
+                    ),
+                  ),
                 ),
-              ),
-              const SizedBox(height: 32),
+                const SizedBox(height: 24),
+              ] else ...[
+                // Se l'utente ha i generi, mostra lo spazio e i selettori (Chips)
+                const SizedBox(height: 24),
+                Padding(
+                  padding: const EdgeInsets.only(left: 16.0),
+                  child: GenreChips(
+                    genres: listForComponents,
+                    selectedGenreId: _selectedGenreId,
+                    onSelectGenre: (id) {
+                      final target = generiData.firstWhere((g) => g['id'] == id);
+                      setState(() {
+                        _selectedGenreId = id;
+                        genereSelezionatoNome = target['nome'];
+                      });
+                      _loadVideosForSelectedGenre(List<String>.from(target['tagDatabase']));
+                    },
+                  ),
+                ),
+                const SizedBox(height: 32),
+              ],
               
+              // Carosello 1: Consigliati / Scopri
               _isCarouselLoading
                   ? const Padding(
                       padding: EdgeInsets.symmetric(vertical: 40.0),
                       child: Center(child: CircularProgressIndicator(color: Color(0xFFFF3B30))),
                     )
                   : VideoCarousel(
-                      title: "Suggeriti per te",
+                      title: listForComponents.isNotEmpty ? "Suggeriti per te" : "Scopri nuovi video",
                       videos: _recommendedVideos,
                       showExpandButton: true,
                       favoriteIds: widget.favoriteIds,
@@ -211,6 +248,7 @@ class _HomeScreenState extends State<HomeScreen> {
               
               const SizedBox(height: 24),
               
+              // Carosello 2: Novità della settimana
               _isLatestLoading
                   ? const Padding(
                       padding: EdgeInsets.symmetric(vertical: 40.0),

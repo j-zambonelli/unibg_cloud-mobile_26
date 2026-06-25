@@ -10,7 +10,7 @@ class GenreWheel extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return CustomPaint(
-      size: const Size(320, 150), // Leggermente più larga e bassa per armonia
+      size: const Size(320, 150),
       painter: WheelPainter(genres: genres, selectedGenreId: selectedGenreId),
     );
   }
@@ -25,10 +25,24 @@ class WheelPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final Offset center = Offset(size.width / 2, size.height - 10);
-    const double radius = 125.0; // Raggio aumentato
-    const double strokeWidth = 14.0; // Molto più fine (prima era 32)
+    const double radius = 125.0;
+    const double strokeWidth = 14.0;
     final Rect rect = Rect.fromCircle(center: center, radius: radius);
 
+    // CASO COLD START: Se non ci sono generi, disegna solo l'arco grigio neutro
+    if (genres.isEmpty) {
+      final Paint emptyPaint = Paint()
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = strokeWidth
+        ..strokeCap = StrokeCap.round
+        ..color = const Color(0xFF2C2C2E) 
+        ..isAntiAlias = true;
+
+      canvas.drawArc(rect, math.pi, math.pi, false, emptyPaint);
+      return;
+    }
+
+    // CASO UTENTE ATTIVO: Rendering normale a colori
     double currentAngle = math.pi;
 
     for (var genre in genres) {
@@ -39,7 +53,7 @@ class WheelPainter extends CustomPainter {
       final Paint paint = Paint()
         ..style = PaintingStyle.stroke
         ..strokeWidth = strokeWidth
-        ..strokeCap = StrokeCap.round // Arrotonda perfettamente le estremità
+        ..strokeCap = StrokeCap.round
         ..color = isSelected ? const Color(0xFFFF3B30) : const Color(0xFF2C2C2E)
         ..isAntiAlias = true;
 
