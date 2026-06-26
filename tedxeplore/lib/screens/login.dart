@@ -1,8 +1,12 @@
+import 'package:amplify_auth_cognito/amplify_auth_cognito.dart';
+import 'package:amplify_flutter/amplify_flutter.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+// import 'package:url_launcher/url_launcher.dart';
 import '../main_wrapper.dart';
 import '../services/aws_service.dart';
 import '../models/profile_model.dart';
+import 'dart:convert';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -15,26 +19,80 @@ class _LoginScreenState extends State<LoginScreen> {
   bool _isLoggingIn = false;
   final AwsService _awsService = AwsService();
 
-  Future<void> _handleAmazonLogin(BuildContext context) async {
+  @override
+  void initState() {
+    super.initState();
+    _checkExistingSession(); // Controlla subito se siamo già loggati
+  }
+
+  Future<void> _checkExistingSession() async {
+    try {
+      final cognitoPlugin = Amplify.Auth.getPlugin(AmplifyAuthCognito.pluginKey);
+      final session = await cognitoPlugin.fetchAuthSession();
+      
+      if (session.isSignedIn) {
+        // L'utente aveva già fatto il login in precedenza o è appena tornato dal redirect
+        final idToken = session.userPoolTokensResult.value.idToken.raw;
+        UserProfileData profile = await _awsService.fetchUserProfile(idToken);
+
+        if (mounted) {
+          Navigator.of(context).pushReplacement(
+            MaterialPageRoute(
+              builder: (context) => MainWrapper(userProfile: profile),
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      // Nessuna sessione attiva, l'utente deve cliccare il pulsante
+      print("Utente non loggato, attendo input.");
+    }
+  }
+
+  Future<void> _handleAmazonOAuthLogin() async {
     setState(() => _isLoggingIn = true);
 
     try {
-      String accountAmazonToken = "amzn1.oa2-cs.v1.tedxplore_token_unibg";
+      // Lancia la UI sicura. Se non ricarica la pagina, il codice prosegue qui
+      final result = await Amplify.Auth.signInWithWebUI(
+        provider: AuthProvider.amazon,
+        options: SignInWithWebUIOptions(
+          pluginOptions: CognitoSignInWithWebUIPluginOptions(
+            isPreferPrivateSession: true,
+          ),
+        ),
+      );
 
-      final SharedPreferences prefs = await SharedPreferences.getInstance();
-      await prefs.setString('amazon_user_token', accountAmazonToken);
+      if (result.isSignedIn) {
+        final cognitoPlugin = Amplify.Auth.getPlugin(AmplifyAuthCognito.pluginKey);
+        final session = await cognitoPlugin.fetchAuthSession();
+        final idToken = session.userPoolTokensResult.value.idToken.raw;
 
-      UserProfileData profile = await _awsService.fetchUserProfile(accountAmazonToken);
+        UserProfileData profile = await _awsService.fetchUserProfile(idToken);
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setString('amazon_user_token', idToken);
 
-      if (context.mounted) {
-        Navigator.of(context).pushReplacement(
-          MaterialPageRoute(
-            builder: (context) => MainWrapper(userProfile: profile),
+        await prefs.setString('amazon_user_json', jsonEncode(profile.toJson()));
+
+        if(context.mounted){
+          Navigator.of(context).pushReplacement(
+            MaterialPageRoute(builder: (context)=> MainWrapper(userProfile: profile),
+            ),
+          );
+        }
+        //await _checkExistingSession(); //Usa la stessa funzione per non duplicare il codice
+      }
+    } on AuthException catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Errore Auth: ${e.message}'),
+            backgroundColor: const Color(0xFFFF3B30),
           ),
         );
       }
-    } catch (_) {
-      setState(() => _isLoggingIn = false);
+    } finally {
+      if (mounted) setState(() => _isLoggingIn = false);
     }
   }
 
@@ -68,15 +126,18 @@ class _LoginScreenState extends State<LoginScreen> {
                   ? const CircularProgressIndicator(color: Color(0xFFFF3B30))
                   : ElevatedButton.icon(
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFFFF9900), // Colore istituzionale Amazon
+                        backgroundColor: const Color(0xFFFF9900), // Giallo Amazon
                         foregroundColor: Colors.black,
-                        minimumSize: const Size.fromHeight(50),
+                        minimumSize: const Size.fromHeight(52),
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                         elevation: 0,
                       ),
-                      icon: const Icon(Icons.import_contacts), 
-                      label: const Text('Login with Amazon', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-                      onPressed: () => _handleAmazonLogin(context),
+                      icon: const Icon(Icons.open_in_browser), 
+                      label: const Text(
+                        'Accedi con Amazon', 
+                        style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                      ),
+                      onPressed: _handleAmazonOAuthLogin,
                     ),
             ],
           ),

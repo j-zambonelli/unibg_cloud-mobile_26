@@ -23,8 +23,8 @@ class TedVideo {
       title: json['title'] ?? 'TEDx Talk',
       speaker: json['speaker'] ?? 'TEDx Speaker',
       thumbnail: json['thumbnail']?.toString() ?? '',
-      duration: json['duration'] ?? '10:00',
-      views: json['views'] ?? '100K',
+      duration: json['duration'] ?? '',
+      views: json['views'] ?? '',
       year: json['year'] is int ? json['year'] : int.tryParse(json['year']?.toString() ?? '2026') ?? 2026,
     );
   }

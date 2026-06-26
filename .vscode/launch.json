@@ -1,0 +1,37 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "tedxeplore",
+      "cwd": "tedxeplore",
+      "request": "launch",
+      "type": "dart",
+      "args": [
+        "--web-port",
+        "49273"
+      ]
+    },
+    {
+      "name": "tedxeplore (profile mode)",
+      "cwd": "tedxeplore",
+      "request": "launch",
+      "type": "dart",
+      "flutterMode": "profile",
+      "args": [
+        "--web-port",
+        "49273"
+      ]
+    },
+    {
+      "name": "tedxeplore (release mode)",
+      "cwd": "tedxeplore",
+      "request": "launch",
+      "type": "dart",
+      "flutterMode": "release",
+      "args": [
+        "--web-port",
+        "49273"
+      ]
+    }
+  ]
+}
