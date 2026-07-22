@@ -5,9 +5,9 @@
 
 | NOME | FILE RELATIVO | CARATTERISTICHE  |
 | ---- | --------------- | ------------- |
-| tedx-data-jz |`../backend_aws/infrastucture.yml` | importare i file csv in `../data/raw` |
-| tedx-log-jz |`../backend_aws/infrastucture.yml`|  |
-| tedx-script-jz |`../backend_aws/infrastucture.yml` | | 
+| tedx-data-mc |`../backend_aws/infrastucture.yml` | importare i file csv in `../data/raw` |
+| tedx-log-mc|`../backend_aws/infrastucture.yml`|  |
+| tedx-script-mc |`../backend_aws/infrastucture.yml` | | 
 
 Per la creazione automatica dei bucket inserire i pezzi di codice (../backend_aws/infrastucture.yml) con **CLOUD FORMATION**
 
@@ -51,10 +51,10 @@ Nella voce Job Details vengono inserite le seguenti impostazioni:
 **Job parameters**
 |CHIAVE | VALORE |
 | ----  | ------ |
-| --DETAILS_PATH | s3://tedx-data-jz/details.csv |
-| --FINAL_LIST_PATH | s3://tedx-data-jz/final_list.csv |
-| --RELATED_VIDEOS_PATH |s3://tedx-data-jz/related_videos.csv |
-| --TAGS_PATH |s3://tedx-data-jz/tags.csv |
+| --DETAILS_PATH | s3://tedx-data-mc/details.csv |
+| --FINAL_LIST_PATH | s3://tedx-data-mc/final_list.csv |
+| --RELATED_VIDEOS_PATH |s3://tedx-data-mc/related_videos.csv |
+| --TAGS_PATH |s3://tedx-data-mc/tags.csv |
 
 ## **API GATEWAY**
 > Servizio per pubblicare, mantenere, monitorare e proteggere le API che fanno da ponte tra il frontend Flutter e le funzioni Lambda.
@@ -77,11 +77,12 @@ In seguito per ogni risorsa è necessario *abilitare il CORS* e implementare l'A
 ## **AMAZON COGNITO**
 > Servizio di gestione identità per autenticare e autorizzare l'accesso degli utenti.
 
-- Nome: Tedxplore-App
+- Nome: MyTedxplore
 - Identificativo di accesso: email
 
-- User pool - ig7c5w
-- ID client: 2o1mgslcfpl69k43vvloa752uk
+- User pool - slxqdp
+- ID bacino utenza: us-east-1_uPDRrdlbk
+- ID client: 6cn5qgpt6eqac41p53e5cp78hs
 
 altre informazioni 
 | URL di callback permessi | URL di disconnessione consentiti | Ambiti OpenID |

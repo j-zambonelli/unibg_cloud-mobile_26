@@ -35,6 +35,11 @@ class _LoginScreenState extends State<LoginScreen> {
         final idToken = session.userPoolTokensResult.value.idToken.raw;
         UserProfileData profile = await _awsService.fetchUserProfile(idToken);
 
+        // Salva il token e il profilo in locale
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setString('amazon_user_token', idToken);
+        await prefs.setString('amazon_user_json', jsonEncode(profile.toJson()));
+
         if (mounted) {
           Navigator.of(context).pushReplacement(
             MaterialPageRoute(

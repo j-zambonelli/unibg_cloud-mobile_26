@@ -1,30 +1,42 @@
 import json
 import os
+import base64
 from pymongo import MongoClient
 
-# Recupera la stringa di connessione dalle variabili d'ambiente di AWS Lambda
 MONGO_URI = os.environ.get('MONGO_URI')
 client = MongoClient(MONGO_URI) if MONGO_URI else None
 
 def lambda_handler(event, context):
     try:
-        # 1. Estrazione dinamica dell'utente da Amazon Cognito tramite API Gateway Authorizer
-        request_context = event.get('requestContext', {})
-        authorizer = request_context.get('authorizer', {})
-        claims = authorizer.get('claims', {})
+        headers = event.get('headers', {}) or {}
+        auth_header = headers.get('Authorization') or headers.get('authorization') or ""
         
-        username = claims.get('cognito:username') or claims.get('username') or ""
-        email = claims.get('email') or ""
+        username = ""
+        email = ""
+        
+        if auth_header.startswith('Bearer '):
+            token = auth_header.split(' ')[1]
+            try:
+                parts = token.split('.')
+                if len(parts) > 1:
+                    payload_base64 = parts[1]
+                    payload_base64 += '=' * (-len(payload_base64) % 4)
+                    payload_bytes = base64.urlsafe_b64decode(payload_base64)
+                    payload = json.loads(payload_bytes.decode('utf-8'))
+                    
+                    username = payload.get('cognito:username') or payload.get('username') or payload.get('sub') or ""
+                    email = payload.get('email') or ""
+            except Exception as decode_err:
+                print(f"Errore decodifica token: {decode_err}")
 
         user_data = None
         
-        # Cerca sul database MongoDB solo se lo username estratto è valido e il client è connesso
+        # Cerca sul database MongoDB
         if client and username:
             db = client['unibg_tedx_2026'] 
             user_collection = db['user_history']
             user_data = user_collection.find_one({"username": username}, {"_id": 0})
         
-        # 2. Se l'utente si è appena registrato, inizializza il profilo senza generi fittizi
         if not user_data:
             user_data = {
                 "username": username if username else "Nuovo Utente",

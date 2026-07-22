@@ -25,7 +25,7 @@ void main() async {
     }
   }
 
-  _configureAmplify(); 
+  await _configureAmplify(); 
 
   runApp(TedXploreApp(initialProfile: loadedProfile));
 }

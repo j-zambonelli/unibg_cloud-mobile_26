@@ -1,6 +1,5 @@
 AWSTemplateFormatVersion: "2010-09-09"
 
-
 Description: >
   This template sets up the the infrastructure.
 
@@ -31,16 +30,16 @@ Resources:
     Type: 'AWS::S3::Bucket'
     DeletionPolicy: Retain
     Properties:
-      BucketName: "tedx-data-jz"
+      BucketName: "tedx-data-mc"
 
   ScriptS3Bucket:
     Type: 'AWS::S3::Bucket'
     DeletionPolicy: Retain
     Properties:
-      BucketName: "tedx-script-jz"
+      BucketName: "tedx-script-mc"
 
   LogS3Bucket:
     Type: 'AWS::S3::Bucket'
     DeletionPolicy: Retain
     Properties:
-      BucketName: "tedx-log-jz"
+      BucketName: "tedx-log-mc"
