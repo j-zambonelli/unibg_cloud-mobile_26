@@ -13,9 +13,9 @@ import 'profile.dart';
 
 class HomeScreen extends StatefulWidget {
   final List<String> favoriteIds;
-  final List<String> watchedIds; // <-- Aggiunto
+  final List<String> watchedIds;
   final Function(String) onToggleFavorite;
-  final Function(TedVideo) onVideoTap; // <-- Aggiunto
+  final Function(TedVideo) onVideoTap;
   final UserProfileData userProfile;
 
   const HomeScreen({
