@@ -1,38 +1,46 @@
 class TedVideo {
   final String id;
   final String title;
-  final String speaker;
+  final String speakers;
   final String thumbnail;
   final String duration;
   final String views;
-  final int year;
+  final String publishedDate;
   final String videoUrl;
 
   TedVideo({
     required this.id,
     required this.title,
-    required this.speaker,
+    required this.speakers,
     required this.thumbnail,
     required this.duration,
     required this.views,
-    required this.year,
+    required this.publishedDate,
     required this.videoUrl,
   });
 
   factory TedVideo.fromJson(Map<String, dynamic> json) {
     final rawId = json['id']?.toString() ?? json['_id']?.toString() ?? '';
-    final title = json['title']?.toString() ?? 'TEDx Talk';
-    final speaker = json['speaker']?.toString() ?? json['presenterDisplayName']?.toString() ?? 'TEDx Speaker';
+    final title = json['title']?.toString() ?? '';
     
-    final uniqueId = rawId.isNotEmpty ? rawId : '${title}_$speaker'.hashCode.toString();
+    final speakers = json['speakers']?.toString() ?? 
+                     json['speaker']?.toString() ?? 
+                     json['presenterDisplayName']?.toString() ?? '';
+    
+    final uniqueId = rawId.isNotEmpty ? rawId : '${title}_$speakers'.hashCode.toString();
 
     final durationRaw = json['duration'];
     final durationStr = durationRaw != null ? durationRaw.toString() : '';
 
     final viewsRaw = json['views'] ?? json['viewedCount'];
-    final viewsStr = viewsRaw != null ? viewsRaw.toString() : '0 visti';
+    final viewsStr = viewsRaw != null ? viewsRaw.toString() : '';
 
-    // Estrae l'URL reale e dinamico del talk
+    String dateStr = '';
+    if (json['publishedAt'] != null) {
+      final rawDate = json['publishedAt'].toString();
+      dateStr = rawDate.contains('T') ? rawDate.split('T')[0] : rawDate;
+    }
+
     final String realVideoUrl = json['url']?.toString() ?? 
                                 json['videoUrl']?.toString() ?? 
                                 'https://www.ted.com/talks/$rawId';
@@ -40,13 +48,11 @@ class TedVideo {
     return TedVideo(
       id: uniqueId,
       title: title,
-      speaker: speaker,
+      speakers: speakers,
       thumbnail: json['thumbnail']?.toString() ?? json['image']?.toString() ?? '',
       duration: durationStr,
       views: viewsStr,
-      year: json['year'] is int 
-          ? json['year'] 
-          : int.tryParse(json['year']?.toString()?.substring(0, 4) ?? '2026') ?? 2026,
+      publishedDate: dateStr,
       videoUrl: realVideoUrl,
     );
   }

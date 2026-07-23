@@ -67,11 +67,11 @@ class FavoritesScreen extends StatelessWidget {
                 final video = realFavoriteVideos[index];
                 return TedxVideoCard(
                   title: video.title,
-                  speaker: video.speaker,
+                  speaker: video.speakers,
                   imageUrl: video.thumbnail,
                   duration: video.duration,
                   views: video.views,
-                  year: video.year.toString(),
+                  year: video.publishedDate.toString(),
                   isFavorite: true, 
                   isWatched: watchedIds.contains(video.id), 
                   onTap: () => onVideoTap(video),            

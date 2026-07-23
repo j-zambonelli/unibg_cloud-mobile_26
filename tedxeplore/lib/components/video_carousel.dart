@@ -80,11 +80,11 @@ class VideoCarousel extends StatelessWidget {
                         width: 220,
                         child: TedxVideoCard(
                           title: video.title,
-                          speaker: video.speaker,
+                          speaker: video.speakers,
                           imageUrl: video.thumbnail,
                           duration: video.duration,
                           views: video.views,
-                          year: video.year.toString(),
+                          year: video.publishedDate.toString(),
                           isFavorite: favoriteIds.contains(video.id),
                           isWatched: watchedIds.contains(video.id), // <-- Passa lo stato visto
                           onTap: () => onVideoTap?.call(video),

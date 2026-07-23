@@ -1,6 +1,5 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:video_player/video_player.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../models/video_model.dart';
 import '../services/storage_service.dart';
@@ -23,49 +22,11 @@ class VideoPlayerScreen extends StatefulWidget {
 
 class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
   final StorageService _storageService = StorageService();
-  VideoPlayerController? _controller;
-  bool _isInitialized = false;
-  bool _isWebLink = false;
 
   @override
   void initState() {
     super.initState();
     _storageService.addWatchedVideo(widget.video.id);
-
-    // Controlla se l'URL è una pagina web di TED o non è un file mp4 diretto
-    if (widget.video.videoUrl.contains('ted.com') || !widget.video.videoUrl.endsWith('.mp4')) {
-      setState(() {
-        _isWebLink = true;
-      });
-    } else {
-      _initVideoPlayer();
-    }
-  }
-
-  void _initVideoPlayer() {
-    _controller = VideoPlayerController.networkUrl(Uri.parse(widget.video.videoUrl))
-      ..initialize().then((_) {
-        if (mounted) {
-          setState(() {
-            _isInitialized = true;
-          });
-          _controller?.setVolume(1.0);
-          _controller?.play();
-        }
-      }).catchError((error) {
-        debugPrint("Errore flusso video, fallback a visualizzazione web: $error");
-        setState(() {
-          _isWebLink = true;
-        });
-      });
-  }
-
-  void _togglePlayPause() {
-    if (_controller != null && _isInitialized) {
-      setState(() {
-        _controller!.value.isPlaying ? _controller!.pause() : _controller!.play();
-      });
-    }
   }
 
   Future<void> _openWebTalk() async {
@@ -76,27 +37,13 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
   }
 
   void _onClosePlayer() {
-    _controller?.pause();
     Navigator.of(context).pop();
   }
 
   @override
-  void dispose() {
-    _controller?.dispose();
-    super.dispose();
-  }
-
-  @override
   Widget build(BuildContext context) {
-    double calculatedProgress = 0.0;
-    if (!_isWebLink && _isInitialized && _controller != null && _controller!.value.duration.inSeconds > 0) {
-      calculatedProgress = (_controller!.value.position.inSeconds / _controller!.value.duration.inSeconds).clamp(0.0, 1.0);
-    } else if (_isWebLink) {
-      calculatedProgress = 0.5; // Progresso indicativo per i link web ufficiali
-    }
-
     return Scaffold(
-      backgroundColor: Colors.black.withOpacity(0.4), // Sfondo trasparente che mostra la home sotto
+      backgroundColor: Colors.black.withOpacity(0.8), // Sfondo trasparente che oscura la home sotto
       body: SafeArea(
         child: Center(
           child: ConstrainedBox(
@@ -107,7 +54,7 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Bottone di chiusura (X) in alto a destra
+                  // Bottone di chiusura (X) in alto a destra dell'overlay
                   Row(
                     mainAxisAlignment: MainAxisAlignment.end,
                     children: [
@@ -126,91 +73,56 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
                   ),
                   const SizedBox(height: 12),
 
-                  // Box del Player in-app (gestisce sia video diretto che pagina web ufficiale)
+                  // Box del Player in Overlay con miniatura e pulsante per aprire il browser
                   ClipRRect(
                     borderRadius: BorderRadius.circular(16),
                     child: AspectRatio(
                       aspectRatio: 16 / 9,
-                      child: _isWebLink
-                          ? GestureDetector(
-                              onTap: _openWebTalk,
-                              child: Stack(
-                                alignment: Alignment.center,
-                                children: [
-                                  widget.video.thumbnail.isNotEmpty
-                                      ? Image.network(widget.video.thumbnail, width: double.infinity, fit: BoxFit.cover)
-                                      : Container(color: Colors.grey[900]),
-                                  Container(
-                                    padding: const EdgeInsets.all(18),
-                                    decoration: const BoxDecoration(
-                                      color: Color(0xFFFF3B30),
-                                      shape: BoxShape.circle,
-                                    ),
-                                    child: const Icon(CupertinoIcons.play_fill, color: Colors.white, size: 36),
-                                  ),
-                                  Positioned(
-                                    bottom: 12,
-                                    child: Container(
-                                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                                      decoration: BoxDecoration(
-                                        color: Colors.black.withOpacity(0.7),
-                                        borderRadius: BorderRadius.circular(20),
-                                      ),
-                                      child: const Text(
-                                        "▶ Guarda il Talk ufficiale",
-                                        style: TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold),
-                                      ),
-                                    ),
-                                  ),
-                                ],
+                      child: GestureDetector(
+                        onTap: _openWebTalk,
+                        child: Stack(
+                          alignment: Alignment.center,
+                          children: [
+                            widget.video.thumbnail.isNotEmpty
+                                ? Image.network(widget.video.thumbnail, width: double.infinity, fit: BoxFit.cover)
+                                : Container(color: Colors.grey[900]),
+                            
+                            Container(
+                              color: Colors.black.withOpacity(0.3),
+                            ),
+
+                            Container(
+                              padding: const EdgeInsets.all(18),
+                              decoration: const BoxDecoration(
+                                color: Color(0xFFFF3B30),
+                                shape: BoxShape.circle,
                               ),
-                            )
-                          : (_isInitialized && _controller != null
-                              ? Stack(
-                                  alignment: Alignment.center,
-                                  children: [
-                                    VideoPlayer(_controller!),
-                                    GestureDetector(
-                                      onTap: _togglePlayPause,
-                                      child: Container(
-                                        padding: const EdgeInsets.all(18),
-                                        decoration: BoxDecoration(
-                                          color: Colors.black.withOpacity(0.5),
-                                          shape: BoxShape.circle,
-                                        ),
-                                        child: Icon(
-                                          _controller!.value.isPlaying 
-                                              ? CupertinoIcons.pause_fill 
-                                              : CupertinoIcons.play_fill, 
-                                          color: Colors.white, 
-                                          size: 36,
-                                        ),
-                                      ),
-                                    ),
-                                    Positioned(
-                                      bottom: 0,
-                                      left: 0,
-                                      right: 0,
-                                      child: LinearProgressIndicator(
-                                        value: calculatedProgress,
-                                        backgroundColor: Colors.white24,
-                                        valueColor: const AlwaysStoppedAnimation<Color>(Color(0xFFFF3B30)),
-                                        minHeight: 4,
-                                      ),
-                                    ),
-                                  ],
-                                )
-                              : Container(
-                                  color: Colors.black,
-                                  alignment: Alignment.center,
-                                  child: const CircularProgressIndicator(color: Color(0xFFFF3B30)),
-                                )),
+                              child: const Icon(CupertinoIcons.play_fill, color: Colors.white, size: 36),
+                            ),
+                            
+                            Positioned(
+                              bottom: 12,
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                                decoration: BoxDecoration(
+                                  color: Colors.black.withOpacity(0.7),
+                                  borderRadius: BorderRadius.circular(20),
+                                ),
+                                child: const Text(
+                                  "▶ Guarda il Talk ufficiale nel browser",
+                                  style: TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
                     ),
                   ),
                   
                   const SizedBox(height: 20),
                   
-                  // Dettagli del Talk
+                  // Titolo e Preferito
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
@@ -236,30 +148,32 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
                     ],
                   ),
                   const SizedBox(height: 6),
+                  
+                  // Speaker del Talk
                   Text(
-                    widget.video.speaker,
+                    widget.video.speakers,
                     style: const TextStyle(
                       color: Color(0xFF8E8E93),
                       fontSize: 15,
                     ),
                   ),
-                  const SizedBox(height: 16),
-                  const Text(
-                    "Informazioni sul Talk",
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                  const SizedBox(height: 6),
-                  const Text(
-                    "Questo talk esplora idee innovative e prospettive uniche, connettendo teoria e pratica per stimolare la riflessione culturale.",
-                    style: TextStyle(
-                      color: Color(0xFF8E8E93),
-                      fontSize: 14,
-                      height: 1.4,
-                    ),
+                  const SizedBox(height: 12),
+
+                  // Informazioni reali sul Talk (Visualizzazioni e Anno) anziché testo fittizio
+                  Row(
+                    children: [
+                      const Icon(CupertinoIcons.eye, color: Color(0xFF8E8E93), size: 16),
+                      const SizedBox(width: 6),
+                      Text(
+                        widget.video.views,
+                        style: const TextStyle(color: Color(0xFF8E8E93), fontSize: 13),
+                      ),
+                      const Text("  •  ", style: TextStyle(color: Color(0xFF8E8E93), fontSize: 13)),
+                      Text(
+                        widget.video.publishedDate.toString(),
+                        style: const TextStyle(color: Color(0xFF8E8E93), fontSize: 13),
+                      ),
+                    ],
                   ),
                 ],
               ),

@@ -122,11 +122,11 @@ class _ProposalsScreenState extends State<ProposalsScreen> {
                       final video = _allProposals[index];
                       return TedxVideoCard(
                         title: video.title,
-                        speaker: video.speaker,
+                        speaker: video.speakers,
                         imageUrl: video.thumbnail,
                         duration: video.duration,
                         views: video.views,
-                        year: video.year.toString(),
+                        year: video.publishedDate.toString(),
                         isFavorite: widget.favoriteIds.contains(video.id),
                         onTap: () {},
                         onToggleFavorite: () => widget.onToggleFavorite(video.id),
