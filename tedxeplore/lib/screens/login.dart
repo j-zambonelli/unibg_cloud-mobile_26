@@ -2,7 +2,6 @@ import 'package:amplify_auth_cognito/amplify_auth_cognito.dart';
 import 'package:amplify_flutter/amplify_flutter.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-// import 'package:url_launcher/url_launcher.dart';
 import '../main_wrapper.dart';
 import '../services/aws_service.dart';
 import '../models/profile_model.dart';
@@ -22,7 +21,7 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   void initState() {
     super.initState();
-    _checkExistingSession(); // Controlla subito se siamo già loggati
+    _checkExistingSession(); 
   }
 
   Future<void> _checkExistingSession() async {
@@ -31,11 +30,9 @@ class _LoginScreenState extends State<LoginScreen> {
       final session = await cognitoPlugin.fetchAuthSession();
       
       if (session.isSignedIn) {
-        // L'utente aveva già fatto il login in precedenza o è appena tornato dal redirect
         final idToken = session.userPoolTokensResult.value.idToken.raw;
         UserProfileData profile = await _awsService.fetchUserProfile(idToken);
 
-        // Salva il token e il profilo in locale
         final prefs = await SharedPreferences.getInstance();
         await prefs.setString('amazon_user_token', idToken);
         await prefs.setString('amazon_user_json', jsonEncode(profile.toJson()));
@@ -43,13 +40,15 @@ class _LoginScreenState extends State<LoginScreen> {
         if (mounted) {
           Navigator.of(context).pushReplacement(
             MaterialPageRoute(
-              builder: (context) => MainWrapper(userProfile: profile),
+              builder: (context) => MainWrapper(
+                userProfile: profile,
+                authToken: idToken,
+              ),
             ),
           );
         }
       }
     } catch (e) {
-      // Nessuna sessione attiva, l'utente deve cliccare il pulsante
       print("Utente non loggato, attendo input.");
     }
   }
@@ -58,7 +57,6 @@ class _LoginScreenState extends State<LoginScreen> {
     setState(() => _isLoggingIn = true);
 
     try {
-      // Lancia la UI sicura. Se non ricarica la pagina, il codice prosegue qui
       final result = await Amplify.Auth.signInWithWebUI(
         provider: AuthProvider.amazon,
         options: SignInWithWebUIOptions(
@@ -76,16 +74,18 @@ class _LoginScreenState extends State<LoginScreen> {
         UserProfileData profile = await _awsService.fetchUserProfile(idToken);
         final prefs = await SharedPreferences.getInstance();
         await prefs.setString('amazon_user_token', idToken);
-
         await prefs.setString('amazon_user_json', jsonEncode(profile.toJson()));
 
         if(context.mounted){
           Navigator.of(context).pushReplacement(
-            MaterialPageRoute(builder: (context)=> MainWrapper(userProfile: profile),
+            MaterialPageRoute(
+              builder: (context) => MainWrapper(
+                userProfile: profile,
+                authToken: idToken,
+              ),
             ),
           );
         }
-        //await _checkExistingSession(); //Usa la stessa funzione per non duplicare il codice
       }
     } on AuthException catch (e) {
       if (mounted) {
@@ -131,7 +131,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   ? const CircularProgressIndicator(color: Color(0xFFFF3B30))
                   : ElevatedButton.icon(
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFFFF9900), // Giallo Amazon
+                        backgroundColor: const Color(0xFFFF9900),
                         foregroundColor: Colors.black,
                         minimumSize: const Size.fromHeight(52),
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),

@@ -1,6 +1,8 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:tedxeplore/screens/proposal_list.dart';
+import 'package:amplify_flutter/amplify_flutter.dart';
+import 'package:amplify_auth_cognito/amplify_auth_cognito.dart';
+import 'proposal_list.dart';
 import '../components/genre_wheel.dart';
 import '../components/genre_chips.dart';
 import '../components/video_carousel.dart';
@@ -11,13 +13,17 @@ import 'profile.dart';
 
 class HomeScreen extends StatefulWidget {
   final List<String> favoriteIds;
+  final List<String> watchedIds; // <-- Aggiunto
   final Function(String) onToggleFavorite;
+  final Function(TedVideo) onVideoTap; // <-- Aggiunto
   final UserProfileData userProfile;
 
   const HomeScreen({
     super.key,
     required this.favoriteIds,
+    required this.watchedIds,
     required this.onToggleFavorite,
+    required this.onVideoTap,
     required this.userProfile,
   });
 
@@ -85,7 +91,6 @@ class _HomeScreenState extends State<HomeScreen> {
       genereSelezionatoNome = generiData.first['nome'];
       _loadVideosForSelectedGenre(generiData.first['tagDatabase']);
     } else {
-      // Se l'utente non ha generi, carichiamo un set di video misti/generici per non bloccare la UI
       _loadVideosForSelectedGenre([]);
     }
   }
@@ -119,6 +124,35 @@ class _HomeScreenState extends State<HomeScreen> {
         _latestVideos = [];
         _isLatestLoading = false;
       });
+    }
+  }
+
+  Future<UserProfileData> _fetchCognitoUserProfile() async {
+    try {
+      final session = await Amplify.Auth.fetchAuthSession() as CognitoAuthSession;
+      
+      String email = '';
+      String username = '';
+
+      final idToken = session.userPoolTokensResult.value.idToken;
+      final Map<String, dynamic> claims = idToken.claims.toJson();
+
+      email = claims['email'] ?? claims['custom:email'] ?? '';
+      username = claims['preferred_username'] ?? claims['name'] ?? claims['cognito:username'] ?? '';
+
+      if (username.isEmpty) {
+        final authUser = await Amplify.Auth.getCurrentUser();
+        username = authUser.username;
+      }
+
+      return UserProfileData(
+        username: username.isNotEmpty ? username : widget.userProfile.username,
+        email: email.isNotEmpty ? email : (widget.userProfile.email.isNotEmpty ? widget.userProfile.email : 'Email non disponibile'),
+        percentualiGeneri: widget.userProfile.percentualiGeneri,
+      );
+    } catch (e) {
+      safePrint('Errore nel recupero della sessione Cognito: $e');
+      return widget.userProfile;
     }
   }
 
@@ -157,12 +191,19 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                     ),
                     GestureDetector(
-                      onTap: () {
-                        Navigator.of(context).push(
-                          MaterialPageRoute(
-                            builder: (context) => ProfileScreen(userProfile: widget.userProfile),
-                          ),
-                        );
+                      onTap: () async {
+                        UserProfileData profileToPass = await _fetchCognitoUserProfile();
+
+                        if (context.mounted) {
+                          Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder: (context) => ProfileScreen(
+                                userProfile: profileToPass,
+                                favoriteCount: widget.favoriteIds.length,
+                              ),
+                            ),
+                          );
+                        }
                       },
                       child: Container(
                         width: 36,
@@ -186,7 +227,6 @@ class _HomeScreenState extends State<HomeScreen> {
               const SizedBox(height: 14),
               Center(child: GenreWheel(genres: listForComponents, selectedGenreId: _selectedGenreId)),
               
-              // LOGICA DI COLD START: Se non ci sono dati, mostra il testo elegante alla base della ruota
               if (listForComponents.isEmpty) ...[
                 const SizedBox(height: 10),
                 const Center(
@@ -202,7 +242,6 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
                 const SizedBox(height: 24),
               ] else ...[
-                // Se l'utente ha i generi, mostra lo spazio e i selettori (Chips)
                 const SizedBox(height: 24),
                 Padding(
                   padding: const EdgeInsets.only(left: 16.0),
@@ -233,7 +272,9 @@ class _HomeScreenState extends State<HomeScreen> {
                       videos: _recommendedVideos,
                       showExpandButton: true,
                       favoriteIds: widget.favoriteIds,
+                      watchedIds: widget.watchedIds, 
                       onToggleFavorite: widget.onToggleFavorite,
+                      onVideoTap: widget.onVideoTap,  
                       onExpandPressed: () => Navigator.of(context).push(
                         MaterialPageRoute(
                           builder: (c) => ProposalsScreen(
@@ -243,7 +284,6 @@ class _HomeScreenState extends State<HomeScreen> {
                           ),
                         ),
                       ),
-                      onVideoTap: (v) {},
                     ),
               
               const SizedBox(height: 24),
@@ -258,8 +298,9 @@ class _HomeScreenState extends State<HomeScreen> {
                       title: "Novità della settimana",
                       videos: _latestVideos,
                       favoriteIds: widget.favoriteIds,
+                      watchedIds: widget.watchedIds,
                       onToggleFavorite: widget.onToggleFavorite,
-                      onVideoTap: (v) {},
+                      onVideoTap: widget.onVideoTap,       
                     ),
               const SizedBox(height: 110),
             ],

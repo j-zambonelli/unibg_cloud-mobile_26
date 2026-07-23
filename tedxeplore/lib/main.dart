@@ -27,20 +27,14 @@ void main() async {
 
   await _configureAmplify(); 
 
-  runApp(TedXploreApp(initialProfile: loadedProfile));
+  runApp(TedXploreApp(initialProfile: loadedProfile, savedToken: savedToken));
 }
 
 Future<void> _configureAmplify() async {
   try {
-    // 1. Istanzia il plugin di Cognito
     final auth = AmplifyAuthCognito();
-    
-    // 2. Aggiungi il plugin ad Amplify
     await Amplify.addPlugin(auth);
-    
-    // 3. Configura Amplify con le tue credenziali AWS
     await Amplify.configure(amplifyConfig);
-    
     print('Amplify configurato con successo');
   } on Exception catch (e) {
     print('Errore nella configurazione di Amplify: $e');
@@ -49,8 +43,9 @@ Future<void> _configureAmplify() async {
 
 class TedXploreApp extends StatelessWidget {
   final UserProfileData? initialProfile;
+  final String? savedToken;
 
-  const TedXploreApp({super.key, this.initialProfile});
+  const TedXploreApp({super.key, this.initialProfile, this.savedToken});
 
   @override
   Widget build(BuildContext context) {
@@ -64,8 +59,8 @@ class TedXploreApp extends StatelessWidget {
           elevation: 0,
         ),
       ),
-      home: initialProfile != null 
-          ? MainWrapper(userProfile: initialProfile!) 
+      home: (initialProfile != null && savedToken != null)
+          ? MainWrapper(userProfile: initialProfile!, authToken: savedToken!) 
           : const LoginScreen(),
     );
   }

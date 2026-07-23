@@ -9,6 +9,7 @@ class TedxVideoCard extends StatelessWidget {
   final String views;
   final String year;
   final bool isFavorite;
+  final bool isWatched; 
   final VoidCallback onTap;
   final VoidCallback onToggleFavorite;
 
@@ -21,6 +22,7 @@ class TedxVideoCard extends StatelessWidget {
     required this.views,
     required this.year,
     required this.isFavorite,
+    this.isWatched = false,
     required this.onTap,
     required this.onToggleFavorite,
   });
@@ -55,18 +57,32 @@ class TedxVideoCard extends StatelessWidget {
                 children: [
                   ClipRRect(
                     borderRadius: BorderRadius.circular(12), 
-                    // Controllo dinamico sulla presenza dell'immagine
                     child: imageUrl.isNotEmpty
                         ? Image.network(
                             imageUrl,
                             width: double.infinity,
                             height: double.infinity,
                             fit: BoxFit.cover,
-                            // Gestisce i link non funzionanti (es. errori 404)
                             errorBuilder: (c, e, s) => _buildPlaceholder(),
                           )
                         : _buildPlaceholder(),
                   ),
+                  // Barra di progresso in basso se il video è stato visto/iniziato
+                  if (isWatched)
+                    Positioned(
+                      bottom: 0,
+                      left: 0,
+                      right: 0,
+                      child: ClipRRect(
+                        borderRadius: const BorderRadius.vertical(bottom: Radius.circular(12)),
+                        child: const LinearProgressIndicator(
+                          value: 1.0,
+                          backgroundColor: Colors.white24,
+                          valueColor: AlwaysStoppedAnimation<Color>(Color(0xFFFF3B30)),
+                          minHeight: 3,
+                        ),
+                      ),
+                    ),
                   // Bottone Preferito iOS
                   Positioned(
                     top: 8,
@@ -87,9 +103,9 @@ class TedxVideoCard extends StatelessWidget {
                       ),
                     ),
                   ),
-                  // Badge Durata Video iOS Style
+                  // Badge Durata Video
                   Positioned(
-                    bottom: 6,
+                    bottom: isWatched ? 8 : 6, // Leggermente rialzato se c'è la barra
                     right: 6,
                     child: Container(
                       padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),

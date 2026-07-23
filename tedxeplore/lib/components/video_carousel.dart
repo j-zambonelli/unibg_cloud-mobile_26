@@ -8,6 +8,7 @@ class VideoCarousel extends StatelessWidget {
   final List<TedVideo> videos;
   final bool showExpandButton;
   final List<String> favoriteIds;
+  final List<String> watchedIds; // <-- Riceve la lista dei video visti
   final Function(String) onToggleFavorite;
   final VoidCallback? onExpandPressed;
   final Function(TedVideo)? onVideoTap;
@@ -18,6 +19,7 @@ class VideoCarousel extends StatelessWidget {
     required this.videos,
     this.showExpandButton = false,
     required this.favoriteIds,
+    required this.watchedIds,
     required this.onToggleFavorite,
     this.onExpandPressed,
     this.onVideoTap,
@@ -28,7 +30,6 @@ class VideoCarousel extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Intestazione Sezione in puro stile iOS (Grandi Titoli e scorciatoia minimale)
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
           child: Row(
@@ -61,8 +62,6 @@ class VideoCarousel extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 8),
-        
-        // Elenco Orizzontale dei Video delle Categorie
         SizedBox(
           height: 250,
           child: videos.isEmpty
@@ -87,6 +86,7 @@ class VideoCarousel extends StatelessWidget {
                           views: video.views,
                           year: video.year.toString(),
                           isFavorite: favoriteIds.contains(video.id),
+                          isWatched: watchedIds.contains(video.id), // <-- Passa lo stato visto
                           onTap: () => onVideoTap?.call(video),
                           onToggleFavorite: () => onToggleFavorite(video.id),
                         ),
