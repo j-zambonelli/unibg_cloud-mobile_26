@@ -6,8 +6,15 @@ import 'login.dart';
 
 class ProfileScreen extends StatefulWidget {
   final UserProfileData userProfile;
+  final int favoriteCount;
+  final int watchedCount;
 
-  const ProfileScreen({super.key, required this.userProfile});
+  const ProfileScreen({
+    super.key, 
+    required this.userProfile,
+    this.favoriteCount = 0,
+    this.watchedCount = 0,
+  });
 
   @override
   State<ProfileScreen> createState() => _ProfileScreenState();
@@ -16,11 +23,13 @@ class ProfileScreen extends StatefulWidget {
 class _ProfileScreenState extends State<ProfileScreen> {
   bool _notificationsEnabled = true;
 
-  final int _videoVistiCount = 24;
-  final int _likeCount = 12;
-
   @override
   Widget build(BuildContext context) {
+    // Usiamo direttamente l'email come testo principale se disponibile
+    final String displayTitle = widget.userProfile.email.isNotEmpty 
+        ? widget.userProfile.email 
+        : 'Utente Amazon';
+
     return Scaffold(
       backgroundColor: const Color(0xFF151517), 
       body: SafeArea(
@@ -69,6 +78,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               
               const SizedBox(height: 28),
 
+              // Box dati utente con la sola email in evidenza
               Container(
                 padding: const EdgeInsets.all(16.0),
                 decoration: BoxDecoration(
@@ -97,22 +107,22 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            widget.userProfile.username,
+                            displayTitle,
                             style: const TextStyle(
                               color: Colors.white,
-                              fontSize: 18,
+                              fontSize: 16,
                               fontWeight: FontWeight.w600,
                               letterSpacing: -0.4,
                             ),
+                            overflow: TextOverflow.ellipsis,
                           ),
                           const SizedBox(height: 2),
-                          Text(
-                            widget.userProfile.email,
-                            style: const TextStyle(
+                          const Text(
+                            'Connesso con Amazon',
+                            style: TextStyle(
                               color: Color(0xFF8E8E93),
-                              fontSize: 14,
+                              fontSize: 13,
                             ),
-                            overflow: TextOverflow.ellipsis,
                           ),
                         ],
                       ),
@@ -148,7 +158,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       trailing: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          Text('$_videoVistiCount', style: const TextStyle(color: Color(0xFF8E8E93), fontSize: 16)),
+                          Text('${widget.watchedCount}', style: const TextStyle(color: Color(0xFF8E8E93), fontSize: 16)),
                           const SizedBox(width: 6),
                           const Icon(CupertinoIcons.chevron_forward, color: Color(0xFF3A3A3C), size: 16),
                         ],
@@ -164,7 +174,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       trailing: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          Text('$_likeCount', style: const TextStyle(color: Color(0xFF8E8E93), fontSize: 16)),
+                          Text('${widget.favoriteCount}', style: const TextStyle(color: Color(0xFF8E8E93), fontSize: 16)),
                           const SizedBox(width: 6),
                           const Icon(CupertinoIcons.chevron_forward, color: Color(0xFF3A3A3C), size: 16),
                         ],
@@ -186,7 +196,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   title: const Text('Avvisi nuovi video', style: TextStyle(color: Colors.white, fontSize: 16)),
                   trailing: CupertinoSwitch(
                     value: _notificationsEnabled,
-                    activeColor: const Color(0xFFFF3B30), // Rosso Apple
+                    activeColor: const Color(0xFFFF3B30),
                     onChanged: (bool value) {
                       setState(() {
                         _notificationsEnabled = value;

@@ -4,14 +4,21 @@ import 'package:flutter/material.dart';
 import 'screens/home.dart';
 import 'screens/favorites.dart';
 import 'screens/settings.dart'; 
+import 'screens/video_player_screen.dart';
 import 'models/profile_model.dart';
 import 'models/video_model.dart';
 import 'services/aws_service.dart';
+import 'services/storage_service.dart';
 
 class MainWrapper extends StatefulWidget {
   final UserProfileData userProfile;
+  final String authToken;
 
-  const MainWrapper({super.key, required this.userProfile});
+  const MainWrapper({
+    super.key, 
+    required this.userProfile,
+    required this.authToken,
+  });
 
   @override
   State<MainWrapper> createState() => _MainWrapperState();
@@ -19,39 +26,100 @@ class MainWrapper extends StatefulWidget {
 
 class _MainWrapperState extends State<MainWrapper> {
   int _selectedIndex = 0;
-  final List<String> _favoriteIds = [];
+  
+  Set<String> _favoriteIds = {};
+  Set<String> _watchedIds = {};
+  Map<String, TedVideo> _cachedVideos = {};
+  
   final AwsService _awsService = AwsService();
+  final StorageService _storageService = StorageService();
   List<TedVideo> _allLoadedVideos = [];
 
   @override
   void initState() {
     super.initState();
-    _catturaTuttiIVideoCatalogo();
+    _inizializzaDati();
   }
 
-  Future<void> _catturaTuttiIVideoCatalogo() async {
+  Future<void> _inizializzaDati() async {
+    final watched = await _storageService.getWatchedIds();
+    
+    List<TedVideo> favoriteVideosList = [];
+    try {
+      favoriteVideosList = await _awsService.fetchFavoriteVideos(widget.authToken);
+    } catch (e) {
+      print("Errore caricamento preferiti: $e");
+    }
+
+    setState(() {
+      _watchedIds = watched;
+      for (var v in favoriteVideosList) {
+        _cachedVideos[v.id] = v;
+        _favoriteIds.add(v.id);
+      }
+      _allLoadedVideos = _cachedVideos.values.toList();
+    });
+
+    await _aggiornaCataloghiDaAws();
+  }
+
+  Future<void> _aggiornaCataloghiDaAws() async {
     try {
       final latest = await _awsService.fetchLatestVideos();
       final primaChiaveGenere = widget.userProfile.percentualiGeneri.keys.first;
       final consigliati = await _awsService.fetchRecommendedVideos([primaChiaveGenere.toLowerCase()]);
       
-      setState(() {
-        final Map<String, TedVideo> rimozioneDuplicati = {};
-        for (var v in [...latest, ...consigliati]) {
-          rimozioneDuplicati[v.id] = v;
-        }
-        _allLoadedVideos = rimozioneDuplicati.values.toList();
-      });
+      registerVideos([...latest, ...consigliati]);
     } catch (_) {}
   }
 
-  void _toggleFavorite(String id) {
-    setState(() {
-      if (_favoriteIds.contains(id)) {
-        _favoriteIds.remove(id);
-      } else {
-        _favoriteIds.add(id);
+  void registerVideos(List<TedVideo> newVideos) {
+    bool updated = false;
+    for (var v in newVideos) {
+      if (!_cachedVideos.containsKey(v.id)) {
+        _cachedVideos[v.id] = v;
+        updated = true;
       }
+    }
+    if (updated) {
+      setState(() {
+        _allLoadedVideos = _cachedVideos.values.toList();
+      });
+    }
+  }
+
+  Future<void> _toggleFavorite(String id) async {
+    final updatedFavorites = Set<String>.from(_favoriteIds);
+    
+    if (updatedFavorites.contains(id)) {
+      updatedFavorites.remove(id);
+    } else {
+      updatedFavorites.add(id);
+    }
+
+    setState(() {
+      _favoriteIds = updatedFavorites;
+    });
+
+    await _awsService.toggleFavoriteApi(widget.authToken, id);
+  }
+
+  void _openVideoPlayer(TedVideo video) async {
+    await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => VideoPlayerScreen(
+          video: video,
+          isFavorite: _favoriteIds.contains(video.id),
+          onToggleFavorite: _toggleFavorite,
+        ),
+      ),
+    );
+    
+    // Aggiorna la lista dei video visti al ritorno dal player
+    final watched = await _storageService.getWatchedIds();
+    setState(() {
+      _watchedIds = watched;
     });
   }
 
@@ -59,13 +127,17 @@ class _MainWrapperState extends State<MainWrapper> {
   Widget build(BuildContext context) {
     final List<Widget> screens = [
       HomeScreen(
-        favoriteIds: _favoriteIds,
+        favoriteIds: _favoriteIds.toList(),
+        watchedIds: _watchedIds.toList(),
         onToggleFavorite: _toggleFavorite,
+        onVideoTap: _openVideoPlayer,
         userProfile: widget.userProfile,
       ),
       FavoritesScreen(
-        favoriteIds: _favoriteIds,
+        favoriteIds: _favoriteIds.toList(),
+        watchedIds: _watchedIds.toList(),
         onToggleFavorite: _toggleFavorite,
+        onVideoTap: _openVideoPlayer,
         allVideos: _allLoadedVideos,
       ),
       SettingsScreen(userProfile: widget.userProfile), 

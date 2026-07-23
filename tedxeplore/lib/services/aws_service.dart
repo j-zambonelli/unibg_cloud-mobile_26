@@ -4,8 +4,9 @@ import '../models/video_model.dart';
 import '../models/profile_model.dart';
 
 class AwsService {
-  static const String _baseUrl = 'https://vx1psjknmb.execute-api.us-east-1.amazonaws.com/prod';
+  static const String _baseUrl = 'https://d07rge2bdi.execute-api.us-east-1.amazonaws.com/prod';
 
+  // 1. PROFILO UTENTE: Recupero reale da AWS API Gateway[cite: 1]
   Future<UserProfileData> fetchUserProfile(String token) async {
     final url = Uri.parse('$_baseUrl/user/profile');
     try {
@@ -18,20 +19,22 @@ class AwsService {
       );
       if (response.statusCode == 200) {
         return UserProfileData.fromJson(jsonDecode(response.body));
+      } else {
+        print('Errore API Profilo: ${response.statusCode}');
+        print('Corpo risposta Profilo: ${response.body}');
       }
-    } catch (_) {}
+    } catch (e) {
+      print('Eccezione di rete Profilo: $e');
+    }
 
     return UserProfileData(
-      username: "JuliaZ04",
-      email: "julia.zambonelli@studenti.unibg.it",
-      percentualiGeneri: {
-        'Scienza': 0.25,
-        'Tecnologia e Ingegneria': 0.35,
-        'Ambiente e sostenibilità': 0.40,
-      },
+      username: "",
+      email: "",
+      percentualiGeneri: {},
     );
   }
 
+  // 2. SUGGERITI / PROPOSTE: Interroga l'endpoint passandogli i tag dei generi preferiti[cite: 1]
   Future<List<TedVideo>> fetchRecommendedVideos(List<String> searchTags) async {
     final url = Uri.parse('$_baseUrl/recommended');
     try {
@@ -40,34 +43,33 @@ class AwsService {
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({'search_tags': searchTags}),
       );
-      if (response.statusCode == 200) {
-        final List<dynamic> data = jsonDecode(response.body);
-        return data.map((json) => TedVideo.fromJson(json)).toList();
-      }
-    } catch (_) {}
 
-    return [
-      TedVideo(
-        id: "v1",
-        title: "Il futuro dell'esplorazione spaziale e NASA NOS3",
-        speaker: "Julia Zambonelli",
-        thumbnail: "https://picsum.photos/seed/space/300/200",
-        duration: "14:20",
-        views: "1.2M",
-        year: 2026,
-      ),
-      TedVideo(
-        id: "v2",
-        title: "Ingegneria del Software nel Cloud Computing",
-        speaker: "UniBG Engineering",
-        thumbnail: "https://picsum.photos/seed/cloud/300/200",
-        duration: "18:15",
-        views: "450K",
-        year: 2025,
-      ),
-    ];
+      if (response.statusCode == 200) {
+        final decoded = jsonDecode(response.body);
+        List<dynamic> dataList;
+
+        if (decoded is List) {
+          dataList = decoded;
+        } else if (decoded is Map && decoded.containsKey('body')) {
+          final inner = decoded['body'];
+          dataList = inner is String ? jsonDecode(inner) : inner;
+        } else {
+          dataList = [];
+        }
+
+        return dataList.map((json) => TedVideo.fromJson(json)).toList();
+      } else {
+        print('Errore API Consigliati: ${response.statusCode}');
+        print('Corpo risposta Consigliati: ${response.body}');
+      }
+    } catch (e) {
+       print('Eccezione di rete Consigliati: $e');
+    }
+
+    return [];
   }
 
+  // 3. NOVITÀ DELLA SETTIMANA: Chiamata reale ad AWS[cite: 1]
   Future<List<TedVideo>> fetchLatestVideos() async {
     final url = Uri.parse('$_baseUrl/latest');
     try {
@@ -76,21 +78,85 @@ class AwsService {
         headers: {'Content-Type': 'application/json'},
       );
       if (response.statusCode == 200) {
-        final List<dynamic> data = jsonDecode(response.body);
-        return data.map((json) => TedVideo.fromJson(json)).toList();
-      }
-    } catch (_) {}
+        final decoded = jsonDecode(response.body);
+        List<dynamic> dataList;
 
-    return [
-      TedVideo(
-        id: "new_1", 
-        title: "L'impatto delle tempeste solari nel 2026", 
-        speaker: "Space Lab", 
-        thumbnail: "https://picsum.photos/seed/solar/300/200", 
-        duration: "11:40", 
-        views: "15K", 
-        year: 2026,
-      ),
-    ];
+        if (decoded is List) {
+          dataList = decoded;
+        } else if (decoded is Map && decoded.containsKey('body')) {
+          final inner = decoded['body'];
+          dataList = inner is String ? jsonDecode(inner) : inner;
+        } else {
+          dataList = [];
+        }
+
+        return dataList.map((json) => TedVideo.fromJson(json)).toList();
+      } else {
+        print('Errore API Latest: ${response.statusCode}');
+        print('Corpo risposta Latest: ${response.body}');
+      }
+    } catch (e) {
+      print('Eccezione di rete Latest: $e');
+    }
+
+    return [];
+  }
+
+  // 4. PREFERITI (GET): Recupera la lista completa gestendo in modo flessibile il formato JSON della Lambda
+  Future<List<TedVideo>> fetchFavoriteVideos(String token) async {
+    final url = Uri.parse('$_baseUrl/favorites');
+    try {
+      final response = await http.get(
+        url,
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Content-Type': 'application/json',
+        },
+      );
+      if (response.statusCode == 200) {
+        final decoded = jsonDecode(response.body);
+        List<dynamic> dataList = [];
+
+        if (decoded is List) {
+          dataList = decoded;
+        } else if (decoded is Map) {
+          if (decoded.containsKey('body')) {
+            final inner = decoded['body'];
+            if (inner is String) {
+              final parsedInner = jsonDecode(inner);
+              dataList = parsedInner is List ? parsedInner : [];
+            } else if (inner is List) {
+              dataList = inner;
+            }
+          } else if (decoded.containsKey('videos')) {
+            dataList = decoded['videos'] is List ? decoded['videos'] : [];
+          }
+        }
+
+        return dataList.map((json) => TedVideo.fromJson(json)).toList();
+      } else {
+        print('Errore API Fetch Preferiti: ${response.statusCode}');
+      }
+    } catch (e) {
+      print('Eccezione di rete Fetch Preferiti: $e');
+    }
+    return [];
+  }
+
+  // 5. PREFERITI (POST): Aggiunge o rimuove un video dai preferiti inviando l'ID al backend
+  Future<void> toggleFavoriteApi(String token, String videoId) async {
+    final url = Uri.parse('$_baseUrl/favorites');
+    try {
+      await http.post(
+        url,
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Content-Type': 'application/json',
+        },
+        body: jsonEncode({'videoId': videoId}),
+      );
+    } catch (e) {
+      print('Eccezione di rete Toggle Preferito API: $e');
+    }
   }
 }

@@ -9,6 +9,14 @@ class UserProfileData {
     required this.percentualiGeneri,
   });
 
+  Map<String, dynamic> toJson() {
+    return {
+      'username': username,
+      'email': email,
+      'percentualiGeneri': percentualiGeneri,
+    };
+  }
+
   factory UserProfileData.fromJson(Map<String, dynamic> json) {
     var generiJson = json['percentualiGeneri'] as Map<String, dynamic>? ?? {};
     Map<String, double> castedGeneri = {};
@@ -17,8 +25,8 @@ class UserProfileData {
     });
 
     return UserProfileData(
-      username: json['username'] ?? 'Utente Kindle',
-      email: json['email'] ?? 'julia.zambonelli@studenti.unibg.it',
+      username: json['username'] ?? '',
+      email: json['email'] ?? '',
       percentualiGeneri: castedGeneri,
     );
   }

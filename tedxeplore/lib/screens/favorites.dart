@@ -5,13 +5,17 @@ import '../models/video_model.dart';
 
 class FavoritesScreen extends StatelessWidget {
   final List<String> favoriteIds;
+  final List<String> watchedIds; 
   final Function(String) onToggleFavorite;
+  final Function(TedVideo) onVideoTap;
   final List<TedVideo> allVideos; 
 
   const FavoritesScreen({
     super.key, 
     required this.favoriteIds, 
+    required this.watchedIds,
     required this.onToggleFavorite,
+    required this.onVideoTap,
     required this.allVideos,
   });
 
@@ -63,13 +67,14 @@ class FavoritesScreen extends StatelessWidget {
                 final video = realFavoriteVideos[index];
                 return TedxVideoCard(
                   title: video.title,
-                  speaker: video.speaker,
+                  speaker: video.speakers,
                   imageUrl: video.thumbnail,
                   duration: video.duration,
                   views: video.views,
-                  year: video.year.toString(),
+                  year: video.publishedDate.toString(),
                   isFavorite: true, 
-                  onTap: () {},
+                  isWatched: watchedIds.contains(video.id), 
+                  onTap: () => onVideoTap(video),            
                   onToggleFavorite: () => onToggleFavorite(video.id),
                 );
               },
