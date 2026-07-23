@@ -159,7 +159,7 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
                   ),
                   const SizedBox(height: 12),
 
-                  // Informazioni reali sul Talk (Visualizzazioni e Anno) anziché testo fittizio
+                  // Informazioni sul Talk (Visualizzazioni e Anno)
                   Row(
                     children: [
                       const Icon(CupertinoIcons.eye, color: Color(0xFF8E8E93), size: 16),

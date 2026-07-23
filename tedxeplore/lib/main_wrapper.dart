@@ -105,18 +105,23 @@ class _MainWrapperState extends State<MainWrapper> {
   }
 
   void _openVideoPlayer(TedVideo video) async {
+    // Apre il player in sovrapposizione trasparente (Overlay) sopra la schermata attuale
     await Navigator.push(
       context,
-      MaterialPageRoute(
-        builder: (context) => VideoPlayerScreen(
+      PageRouteBuilder(
+        opaque: false, 
+        pageBuilder: (context, animation, secondaryAnimation) => VideoPlayerScreen(
           video: video,
           isFavorite: _favoriteIds.contains(video.id),
           onToggleFavorite: _toggleFavorite,
         ),
+        transitionsBuilder: (context, animation, secondaryAnimation, child) {
+          return FadeTransition(opacity: animation, child: child);
+        },
       ),
     );
     
-    // Aggiorna la lista dei video visti al ritorno dal player
+    // Aggiorna la lista dei video visti al ritorno dalla chiusura dell'overlay
     final watched = await _storageService.getWatchedIds();
     setState(() {
       _watchedIds = watched;
