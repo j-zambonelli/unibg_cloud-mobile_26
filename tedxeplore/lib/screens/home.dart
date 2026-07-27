@@ -174,7 +174,6 @@ class _HomeScreenState extends State<HomeScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Header con Logo e Profilo
               Padding(
                 padding: const EdgeInsets.only(left: 16.0, right: 16.0, top: 20.0, bottom: 10.0),
                 child: Row(
@@ -261,7 +260,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 const SizedBox(height: 32),
               ],
               
-              // Carosello 1: Consigliati / Scopri
+              // 1 Carousel: Recommended Videos
               _isCarouselLoading
                   ? const Padding(
                       padding: EdgeInsets.symmetric(vertical: 40.0),
@@ -279,7 +278,9 @@ class _HomeScreenState extends State<HomeScreen> {
                         MaterialPageRoute(
                           builder: (c) => ProposalsScreen(
                             favoriteIds: widget.favoriteIds,
+                            watchedIds: widget.watchedIds,
                             onToggleFavorite: widget.onToggleFavorite,
+                            onVideoTap: widget.onVideoTap,
                             userProfile: widget.userProfile,
                           ),
                         ),
@@ -288,7 +289,7 @@ class _HomeScreenState extends State<HomeScreen> {
               
               const SizedBox(height: 24),
               
-              // Carosello 2: Novità della settimana
+              // 2 Carousel: latest videos
               _isLatestLoading
                   ? const Padding(
                       padding: EdgeInsets.symmetric(vertical: 40.0),

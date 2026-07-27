@@ -67,7 +67,8 @@ class TedxVideoCard extends StatelessWidget {
                           )
                         : _buildPlaceholder(),
                   ),
-                  // Barra di progresso in basso se il video è stato visto/iniziato
+                  
+                  //Progress bar
                   if (isWatched)
                     Positioned(
                       bottom: 0,
@@ -105,7 +106,7 @@ class TedxVideoCard extends StatelessWidget {
                   ),
                   // Badge Durata Video
                   Positioned(
-                    bottom: isWatched ? 8 : 6, // Leggermente rialzato se c'è la barra
+                    bottom: isWatched ? 8 : 6,
                     right: 6,
                     child: Container(
                       padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),

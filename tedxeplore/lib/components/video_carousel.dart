@@ -8,7 +8,7 @@ class VideoCarousel extends StatelessWidget {
   final List<TedVideo> videos;
   final bool showExpandButton;
   final List<String> favoriteIds;
-  final List<String> watchedIds; // <-- Riceve la lista dei video visti
+  final List<String> watchedIds; 
   final Function(String) onToggleFavorite;
   final VoidCallback? onExpandPressed;
   final Function(TedVideo)? onVideoTap;
@@ -86,7 +86,7 @@ class VideoCarousel extends StatelessWidget {
                           views: video.views,
                           year: video.publishedDate.toString(),
                           isFavorite: favoriteIds.contains(video.id),
-                          isWatched: watchedIds.contains(video.id), // <-- Passa lo stato visto
+                          isWatched: watchedIds.contains(video.id),
                           onTap: () => onVideoTap?.call(video),
                           onToggleFavorite: () => onToggleFavorite(video.id),
                         ),

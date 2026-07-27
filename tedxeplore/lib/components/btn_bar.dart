@@ -12,20 +12,20 @@ class MainBtnBar extends StatelessWidget {
   Widget build(BuildContext context) {
     return ClipRect(
       child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20), // Effetto vetro sfocato iOS
+        filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20), 
         child: Container(
           decoration: BoxDecoration(
-            color: Colors.black.withOpacity(0.65), // Sfondo scuro semitrasparente
+            color: Colors.black.withOpacity(0.65), 
             border: Border(
-              top: BorderSide(color: Colors.white.withOpacity(0.1), width: 0.5), // Linea sottile iOS style
+              top: BorderSide(color: Colors.white.withOpacity(0.1), width: 0.5),
             ),
           ),
           child: CupertinoTabBar(
             currentIndex: currentIndex,
             onTap: onTap,
             backgroundColor: Colors.transparent,
-            activeColor: const Color(0xFFFF3B30), // Il rosso nativo del sistema iOS (Apple Red)
-            inactiveColor: const Color(0xFF8E8E93), // Il grigio nativo di sistema iOS
+            activeColor: const Color(0xFFFF3B30),
+            inactiveColor: const Color(0xFF8E8E93),
             iconSize: 24,
             items: const [
               BottomNavigationBarItem(

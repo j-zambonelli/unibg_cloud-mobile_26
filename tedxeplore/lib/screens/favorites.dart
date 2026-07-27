@@ -58,10 +58,10 @@ class FavoritesScreen extends StatelessWidget {
               padding: const EdgeInsets.all(16),
               itemCount: realFavoriteVideos.length,
               gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 2, 
-                crossAxisSpacing: 14, 
+                crossAxisCount: 3, 
+                crossAxisSpacing: 12, 
                 mainAxisSpacing: 16, 
-                childAspectRatio: 0.75, 
+                childAspectRatio: 0.72, 
               ),
               itemBuilder: (context, index) {
                 final video = realFavoriteVideos[index];

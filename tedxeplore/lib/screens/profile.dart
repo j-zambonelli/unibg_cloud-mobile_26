@@ -25,7 +25,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   @override
   Widget build(BuildContext context) {
-    // Usiamo direttamente l'email come testo principale se disponibile
     final String displayTitle = widget.userProfile.email.isNotEmpty 
         ? widget.userProfile.email 
         : 'Utente Amazon';
@@ -78,7 +77,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               
               const SizedBox(height: 28),
 
-              // Box dati utente con la sola email in evidenza
+              // User Box 
               Container(
                 padding: const EdgeInsets.all(16.0),
                 decoration: BoxDecoration(

@@ -6,7 +6,7 @@ import '../models/profile_model.dart';
 class AwsService {
   static const String _baseUrl = 'https://d07rge2bdi.execute-api.us-east-1.amazonaws.com/prod';
 
-  // 1. PROFILO UTENTE: Recupero reale da AWS API Gateway[cite: 1]
+  // 1. USER PROFILE
   Future<UserProfileData> fetchUserProfile(String token) async {
     final url = Uri.parse('$_baseUrl/user/profile');
     try {
@@ -34,7 +34,7 @@ class AwsService {
     );
   }
 
-  // 2. SUGGERITI / PROPOSTE: Interroga l'endpoint passandogli i tag dei generi preferiti[cite: 1]
+  // 2. RECOMMENDATIONS
   Future<List<TedVideo>> fetchRecommendedVideos(List<String> searchTags) async {
     final url = Uri.parse('$_baseUrl/recommended');
     try {
@@ -69,7 +69,7 @@ class AwsService {
     return [];
   }
 
-  // 3. NOVITÀ DELLA SETTIMANA: Chiamata reale ad AWS[cite: 1]
+  // 3. LATEST VIDEOS published in the last week
   Future<List<TedVideo>> fetchLatestVideos() async {
     final url = Uri.parse('$_baseUrl/latest');
     try {
@@ -102,7 +102,7 @@ class AwsService {
     return [];
   }
 
-  // 4. PREFERITI (GET): Recupera la lista completa gestendo in modo flessibile il formato JSON della Lambda
+  // 4. LIKES (GET) 
   Future<List<TedVideo>> fetchFavoriteVideos(String token) async {
     final url = Uri.parse('$_baseUrl/favorites');
     try {
@@ -143,7 +143,7 @@ class AwsService {
     return [];
   }
 
-  // 5. PREFERITI (POST): Aggiunge o rimuove un video dai preferiti inviando l'ID al backend
+  // 5. LIKE (POST)
   Future<void> toggleFavoriteApi(String token, String videoId) async {
     final url = Uri.parse('$_baseUrl/favorites');
     try {
@@ -158,5 +158,40 @@ class AwsService {
     } catch (e) {
       print('Eccezione di rete Toggle Preferito API: $e');
     }
+  }
+
+  // 6. WATCH NEXT 
+  Future<List<TedVideo>> fetchWatchNextVideos(String videoId) async {
+    final url = Uri.parse('$_baseUrl/watch-next'); 
+    try {
+      final response = await http.post(
+        url,
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({'current_video_id': videoId}),
+      );
+
+      if (response.statusCode == 200) {
+        final decoded = jsonDecode(response.body);
+        List<dynamic> dataList;
+
+        if (decoded is List) {
+          dataList = decoded;
+        } else if (decoded is Map && decoded.containsKey('body')) {
+          final inner = decoded['body'];
+          dataList = inner is String ? jsonDecode(inner) : inner;
+        } else {
+          dataList = [];
+        }
+
+        return dataList.map((json) => TedVideo.fromJson(json)).toList();
+      } else {
+        print('Errore API Watch Next: ${response.statusCode}');
+        print('Corpo risposta Watch Next: ${response.body}');
+      }
+    } catch (e) {
+      print('Eccezione di rete Watch Next: $e');
+    }
+
+    return [];
   }
 }

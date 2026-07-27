@@ -29,7 +29,7 @@ class WheelPainter extends CustomPainter {
     const double strokeWidth = 14.0;
     final Rect rect = Rect.fromCircle(center: center, radius: radius);
 
-    // CASO COLD START: Se non ci sono generi, disegna solo l'arco grigio neutro
+    // Without genre the wheel is total grey
     if (genres.isEmpty) {
       final Paint emptyPaint = Paint()
         ..style = PaintingStyle.stroke
@@ -42,7 +42,7 @@ class WheelPainter extends CustomPainter {
       return;
     }
 
-    // CASO UTENTE ATTIVO: Rendering normale a colori
+    // With genre the wheel is divided in 5 different section
     double currentAngle = math.pi;
 
     for (var genre in genres) {

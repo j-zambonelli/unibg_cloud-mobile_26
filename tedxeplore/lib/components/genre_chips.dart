@@ -15,7 +15,7 @@ class GenreChips extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      height: 36, // Altezza ancora più compatta e svelta senza emoji
+      height: 36, 
       child: ListView.builder(
         scrollDirection: Axis.horizontal,
         itemCount: genres.length,
@@ -27,7 +27,7 @@ class GenreChips extends StatelessWidget {
             padding: const EdgeInsets.only(right: 8.0),
             child: InkWell(
               onTap: () => onSelectGenre(genre['id']),
-              borderRadius: BorderRadius.circular(8), // Smussatura angoli iOS minimale
+              borderRadius: BorderRadius.circular(8),
               child: AnimatedContainer(
                 duration: const Duration(milliseconds: 150),
                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -42,7 +42,7 @@ class GenreChips extends StatelessWidget {
                     color: isSelected ? Colors.white : const Color(0xFF8E8E93),
                     fontSize: 13,
                     fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
-                    letterSpacing: -0.1, // Tipografia SF Pro compatta
+                    letterSpacing: -0.1, 
                   ),
                 ),
               ),

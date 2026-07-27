@@ -6,13 +6,17 @@ import '../services/aws_service.dart';
 
 class ProposalsScreen extends StatefulWidget {
   final List<String> favoriteIds;
+  final List<String> watchedIds;
   final Function(String) onToggleFavorite;
+  final Function(TedVideo) onVideoTap;
   final UserProfileData userProfile; 
 
   const ProposalsScreen({
     super.key, 
     required this.favoriteIds,
+    required this.watchedIds,
     required this.onToggleFavorite,
+    required this.onVideoTap,
     required this.userProfile,
   });
 
@@ -113,10 +117,10 @@ class _ProposalsScreenState extends State<ProposalsScreen> {
                   child: GridView.builder(
                     itemCount: _allProposals.length,
                     gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                      crossAxisCount: 2,
-                      crossAxisSpacing: 14,
-                      mainAxisSpacing: 14,
-                      childAspectRatio: 0.73,
+                      crossAxisCount: 3,
+                      crossAxisSpacing: 12,
+                      mainAxisSpacing: 16,
+                      childAspectRatio: 0.72, 
                     ),
                     itemBuilder: (context, index) {
                       final video = _allProposals[index];
@@ -128,7 +132,8 @@ class _ProposalsScreenState extends State<ProposalsScreen> {
                         views: video.views,
                         year: video.publishedDate.toString(),
                         isFavorite: widget.favoriteIds.contains(video.id),
-                        onTap: () {},
+                        isWatched: widget.watchedIds.contains(video.id), // <-- Gestione video visti
+                        onTap: () => widget.onVideoTap(video), // <-- Apre il player correttamente
                         onToggleFavorite: () => widget.onToggleFavorite(video.id),
                       );
                     },

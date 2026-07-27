@@ -29,8 +29,24 @@ class TedVideo {
     
     final uniqueId = rawId.isNotEmpty ? rawId : '${title}_$speakers'.hashCode.toString();
 
+    String formattedDuration = '';
     final durationRaw = json['duration'];
-    final durationStr = durationRaw != null ? durationRaw.toString() : '';
+    
+    if (durationRaw != null) {
+      String rawStr = durationRaw.toString();
+      if (rawStr.contains(':')) {
+        formattedDuration = rawStr;
+      } else {
+        int? totalSeconds = int.tryParse(rawStr);
+        if (totalSeconds != null) {
+          int minutes = totalSeconds ~/ 60;
+          int seconds = totalSeconds % 60;
+          formattedDuration = '$minutes:${seconds.toString().padLeft(2, '0')}';
+        } else {
+          formattedDuration = rawStr;
+        }
+      }
+    }
 
     final viewsRaw = json['views'] ?? json['viewedCount'];
     final viewsStr = viewsRaw != null ? viewsRaw.toString() : '';
@@ -50,7 +66,7 @@ class TedVideo {
       title: title,
       speakers: speakers,
       thumbnail: json['thumbnail']?.toString() ?? json['image']?.toString() ?? '',
-      duration: durationStr,
+      duration: formattedDuration, 
       views: viewsStr,
       publishedDate: dateStr,
       videoUrl: realVideoUrl,
