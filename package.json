@@ -1,0 +1,24 @@
+{
+  "name": "unibg_cloud-mobile_26",
+  "version": "1.0.0",
+  "description": "TEDxplore è un'applicazione mobile innovativa progettata per abbattere la **\"Filter Bubble\"** culturale dei lettori digitali. Collegandosi all'account Amazon Kindle, l'app analizza i generi letterari preferiti dell'utente per offrire una selezione curata di talk TEDx, trasformando un interesse passivo in curiosità attiva.",
+  "main": "index.js",
+  "directories": {
+    "doc": "docs"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/j-zambonelli/unibg_cloud-mobile_26.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/j-zambonelli/unibg_cloud-mobile_26/issues"
+  },
+  "homepage": "https://github.com/j-zambonelli/unibg_cloud-mobile_26#readme"
+}

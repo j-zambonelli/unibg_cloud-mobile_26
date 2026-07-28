@@ -161,13 +161,16 @@ class AwsService {
   }
 
   // 6. WATCH NEXT 
-  Future<List<TedVideo>> fetchWatchNextVideos(String videoId) async {
+  Future<List<TedVideo>> fetchWatchNextVideos(String videoId, String videoTitle) async {
     final url = Uri.parse('$_baseUrl/watch-next'); 
     try {
       final response = await http.post(
         url,
         headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({'current_video_id': videoId}),
+        body: jsonEncode({
+          'current_video_id': videoId,
+          'current_video_title': videoTitle
+        }),
       );
 
       if (response.statusCode == 200) {

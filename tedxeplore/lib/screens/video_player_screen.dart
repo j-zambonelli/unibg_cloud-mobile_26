@@ -64,48 +64,19 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
   Future<void> _loadRelatedVideos() async {
     setState(() => _isLoadingRelated = true);
     try {
-      final videos = await _awsService.fetchWatchNextVideos(widget.video.id);
+      final videos = await _awsService.fetchWatchNextVideos(widget.video.id, widget.video.title);
       
       if (context.mounted) {
         setState(() {
-          if (videos.isEmpty) {
-            // Mock se il DB non ha correlati per questo video
-            _relatedVideos = [
-              TedVideo(
-                id: "mock_1",
-                title: "Il futuro dell'intelligenza artificiale e la sicurezza spaziale",
-                speakers: "Jane Doe",
-                thumbnail: "https://pi.tedcdn.com/r/talkstar-photos.s3.amazonaws.com/uploads/72bda89f-8bbf-4685-910a-2f151c4f0762/BillGates_2015-embed.jpg",
-                duration: "14:20",
-                views: "1.2M",
-                publishedDate: "2025-10-12",
-                videoUrl: "https://www.youtube.com/watch?v=8nt3edWLgIg",
-              )
-            ];
-          } else {
-            _relatedVideos = videos;
-          }
+          _relatedVideos = videos;
           _isLoadingRelated = false;
         });
       }
     } catch (e) {
       print("Errore API Watch Next: $e"); 
-      
       if (context.mounted) {
         setState(() {
-          // Mock in caso di errore di rete / CORS
-          _relatedVideos = [
-            TedVideo(
-              id: "mock_error",
-              title: "Come costruire un orologio digitale custom",
-              speakers: "Maker Team",
-              thumbnail: "https://pi.tedcdn.com/r/talkstar-photos.s3.amazonaws.com/uploads/72bda89f-8bbf-4685-910a-2f151c4f0762/BillGates_2015-embed.jpg",
-              duration: "08:45",
-              views: "350K",
-              publishedDate: "2026-07-20",
-              videoUrl: "https://www.youtube.com/watch?v=8nt3edWLgIg",
-            )
-          ];
+          _relatedVideos = [];
           _isLoadingRelated = false;
         });
       }
@@ -124,6 +95,7 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
     super.dispose();
   }
 
+  // Costruisce la Chip con la Thumbnail di sfondo/anteprima
   Widget _buildWatchNextChip(TedVideo nextVideo, bool isYouTubeVideo) {
     return GestureDetector(
       onTap: () {
@@ -157,12 +129,14 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
                             width: 100,
                             height: 60,
                             color: const Color(0xFF2C2C2E),
+                            child: const Icon(CupertinoIcons.play_rectangle, color: Colors.white54, size: 24),
                           ),
                         )
                       : Container(
                           width: 100,
                           height: 60,
                           color: const Color(0xFF2C2C2E),
+                          child: const Icon(CupertinoIcons.play_rectangle, color: Colors.white54, size: 24),
                         ),
                   Container(
                     margin: const EdgeInsets.all(4),
@@ -259,36 +233,60 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
                   ),
                   const SizedBox(height: 12),
 
+                  // Player con Anteprima di Sfondo
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 20.0),
                     child: AspectRatio(
                       aspectRatio: 16 / 9,
                       child: isYouTubeVideo
                           ? YoutubePlayer(controller: _ytController)
-                          : Container(
-                              decoration: BoxDecoration(
-                                color: const Color(0xFF1C1C1E),
-                                borderRadius: BorderRadius.circular(16),
-                                border: Border.all(color: Colors.white.withOpacity(0.1)),
-                              ),
-                              child: Column(
-                                mainAxisAlignment: MainAxisAlignment.center,
+                          : ClipRRect(
+                              borderRadius: BorderRadius.circular(16),
+                              child: Stack(
+                                fit: StackFit.expand,
                                 children: [
-                                  const Icon(CupertinoIcons.link, color: Colors.white, size: 32),
-                                  const SizedBox(height: 16),
-                                  ElevatedButton.icon(
-                                    style: ElevatedButton.styleFrom(
-                                      backgroundColor: const Color(0xFFFF3B30),
-                                      foregroundColor: Colors.white,
-                                    ),
-                                    onPressed: () async {
-                                      final url = Uri.parse(widget.video.videoUrl);
-                                      if (await canLaunchUrl(url)) {
-                                        await launchUrl(url);
-                                      }
-                                    },
-                                    icon: const Icon(CupertinoIcons.play_arrow_solid, size: 16),
-                                    label: const Text("Guarda sul sito TED"),
+                                  // 1. Immagine di Anteprima di Sfondo
+                                  widget.video.thumbnail.isNotEmpty
+                                      ? Image.network(
+                                          widget.video.thumbnail,
+                                          fit: BoxFit.cover,
+                                          errorBuilder: (context, error, stackTrace) => Container(
+                                            color: const Color(0xFF1C1C1E),
+                                          ),
+                                        )
+                                      : Container(color: const Color(0xFF1C1C1E)),
+
+                                  // 2. Overlay scuro per far risaltare il pulsante
+                                  Container(
+                                    color: Colors.black.withOpacity(0.5),
+                                  ),
+
+                                  // 3. Pulsante d'azione
+                                  Column(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      ElevatedButton.icon(
+                                        style: ElevatedButton.styleFrom(
+                                          backgroundColor: const Color(0xFFFF3B30),
+                                          foregroundColor: Colors.white,
+                                          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                                          shape: RoundedRectangleBorder(
+                                            borderRadius: BorderRadius.circular(25),
+                                          ),
+                                        ),
+                                        onPressed: () async {
+                                          final url = Uri.parse(widget.video.videoUrl);
+                                          if (await canLaunchUrl(url)) {
+                                            await launchUrl(url);
+                                          }
+                                        },
+                                        icon: const Icon(CupertinoIcons.play_arrow_solid, size: 18),
+                                        label: const Text(
+                                          "Guarda sul sito TED",
+                                          style: TextStyle(fontWeight: FontWeight.bold),
+                                        ),
+                                      ),
+                                    ],
                                   ),
                                 ],
                               ),
